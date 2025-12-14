@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Components - InsurTech App</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      background: #f5f5f5;
+    }
+    .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+    header {
+      background: linear-gradient(135deg, #0b69ff 0%, #0052cc 100%);
+      color: white;
+      padding: 30px 20px;
+      margin-bottom: 30px;
+      border-radius: 8px;
+    }
+    .back-link { color: white; text-decoration: none; margin-bottom: 10px; display: inline-block; }
+    h1 { font-size: 2em; }
+    .section {
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      margin-bottom: 30px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    h2 {
+      color: #0b69ff;
+      margin-bottom: 20px;
+      font-size: 1.8em;
+      border-bottom: 2px solid #0b69ff;
+      padding-bottom: 10px;
+    }
+    h3 {
+      color: #333;
+      margin-top: 20px;
+      margin-bottom: 15px;
+      font-size: 1.3em;
+    }
+    .component-card {
+      background: #f9fafb;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      border-left: 4px solid #0b69ff;
+    }
+    .component-card h4 {
+      color: #0b69ff;
+      margin-bottom: 10px;
+      font-size: 1.2em;
+    }
+    .props-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 15px 0;
+    }
+    .props-table th,
+    .props-table td {
+      padding: 10px;
+      text-align: left;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    .props-table th {
+      background: #f3f4f6;
+      font-weight: 600;
+      color: #111827;
+    }
+    code {
+      background: #f4f4f4;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9em;
+    }
+    pre {
+      background: #2d2d2d;
+      color: #f8f8f2;
+      padding: 15px;
+      border-radius: 5px;
+      overflow-x: auto;
+      margin: 15px 0;
+    }
+    .badge {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-size: 0.75em;
+      font-weight: 600;
+      margin-left: 5px;
+    }
+    .badge-required { background: #dc3545; color: white; }
+    .badge-optional { background: #6c757d; color: white; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <a href="index.html" class="back-link">← Back to Documentation</a>
+      <h1>Components</h1>
+      <p>Reusable UI components and primitives</p>
+    </header>
+
+    <div class="section">
+      <h2>Primitive Components</h2>
+
+      <div class="component-card">
+        <h4>Text</h4>
+        <p>NativeWind-styled Text wrapper with size scaling and className support.</p>
+        <pre><code>import { Text } from '@/components/primitives/Text';
+
+&lt;Text size={16} className="text-primary font-semibold"&gt;
+  Hello World
+&lt;/Text&gt;
+
+&lt;Text variant="h1" className="text-text-primary"&gt;
+  Heading
+&lt;/Text&gt;</code></pre>
+        <table class="props-table">
+          <tr><th>Prop</th><th>Type</th><th>Description</th></tr>
+          <tr><td>size</td><td>number</td><td>Font size in Figma px (scaled automatically)</td></tr>
+          <tr><td>variant</td><td>TypographyVariant</td><td>Typography variant (h1, h2, body, etc.)</td></tr>
+          <tr><td>className</td><td>string</td><td>Tailwind classes</td></tr>
+          <tr><td>allowFontScaling</td><td>boolean</td><td>Default: true</td></tr>
+        </table>
+      </div>
+
+      <div class="component-card">
+        <h4>Box</h4>
+        <p>View wrapper with scaled padding/margin props and className support.</p>
+        <pre><code>import { Box } from '@/components/primitives/Box';
+
+&lt;Box p={16} m={8} className="bg-white rounded-lg"&gt;
+  Content
+&lt;/Box&gt;</code></pre>
+        <table class="props-table">
+          <tr><th>Prop</th><th>Type</th><th>Description</th></tr>
+          <tr><td>p, px, py, pt, pb, pl, pr</td><td>number</td><td>Padding in Figma px (scaled)</td></tr>
+          <tr><td>m, mx, my, mt, mb, ml, mr</td><td>number</td><td>Margin in Figma px (scaled)</td></tr>
+          <tr><td>className</td><td>string</td><td>Tailwind classes</td></tr>
+        </table>
+      </div>
+
+      <div class="component-card">
+        <h4>Button</h4>
+        <p>Button component with variants, loading state, and scaled dimensions.</p>
+        <pre><code>import { Button } from '@/components/primitives/Button';
+
+&lt;Button variant="primary" onPress={handlePress} loading={isLoading}&gt;
+  Click Me
+&lt;/Button&gt;</code></pre>
+        <table class="props-table">
+          <tr><th>Prop</th><th>Type</th><th>Description</th></tr>
+          <tr><td>variant</td><td>ButtonVariant</td><td>primary | secondary | ghost | outline | danger</td></tr>
+          <tr><td>height</td><td>number</td><td>Button height in Figma px (default: 48)</td></tr>
+          <tr><td>radius</td><td>number</td><td>Border radius in Figma px (default: 8)</td></tr>
+          <tr><td>loading</td><td>boolean</td><td>Show loading spinner</td></tr>
+          <tr><td>disabled</td><td>boolean</td><td>Disable button</td></tr>
+          <tr><td>fullWidth</td><td>boolean</td><td>Full width button</td></tr>
+        </table>
+      </div>
+
+      <div class="component-card">
+        <h4>Input</h4>
+        <p>TextInput with error state, label, and icons.</p>
+        <pre><code>import { Input } from '@/components/primitives/Input';
+
+&lt;Input
+  label="Email"
+  placeholder="Enter email"
+  value={value}
+  onChangeText={onChangeText}
+  error={error}
+/&gt;</code></pre>
+        <table class="props-table">
+          <tr><th>Prop</th><th>Type</th><th>Description</th></tr>
+          <tr><td>label</td><td>string</td><td>Input label</td></tr>
+          <tr><td>error</td><td>string</td><td>Error message</td></tr>
+          <tr><td>helperText</td><td>string</td><td>Helper text</td></tr>
+          <tr><td>leftIcon</td><td>ReactNode</td><td>Left icon component</td></tr>
+          <tr><td>rightIcon</td><td>ReactNode</td><td>Right icon component</td></tr>
+          <tr><td>height</td><td>number</td><td>Input height in Figma px (default: 48)</td></tr>
+        </table>
+      </div>
+
+      <div class="component-card">
+        <h4>IconButton</h4>
+        <p>Button that displays an icon with different sizes and variants.</p>
+        <pre><code>import { IconButton } from '@/components/primitives/IconButton';
+
+&lt;IconButton
+  icon={&lt;Icon name="heart" /&gt;}
+  onPress={handlePress}
+  variant="ghost"
+  size="md"
+/&gt;</code></pre>
+      </div>
+
+      <div class="component-card">
+        <h4>Spacer</h4>
+        <p>Simple component for adding vertical or horizontal spacing.</p>
+        <pre><code>import { Spacer } from '@/components/primitives/Spacer';
+
+&lt;Spacer height={16} /&gt;
+&lt;Spacer width={8} /&gt;</code></pre>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Form Components</h2>
+
+      <div class="component-card">
+        <h4>FormField</h4>
+        <p>React Hook Form Controller wrapper for Input.</p>
+        <pre><code>import { FormField } from '@/components/form/FormField';
+
+&lt;FormField
+  control={control}
+  name="email"
+  label="Email"
+  placeholder="Enter email"
+/&gt;</code></pre>
+      </div>
+
+      <div class="component-card">
+        <h4>Dropdown</h4>
+        <p>Dropdown/select component for forms.</p>
+        <pre><code>import { Dropdown } from '@/components/form/Dropdown';
+
+&lt;Dropdown
+  options={options}
+  value={value}
+  onChange={onChange}
+  placeholder="Select an option"
+/&gt;</code></pre>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>UI Components</h2>
+
+      <div class="component-card">
+        <h4>Modal</h4>
+        <p>Reusable modal component with backdrop.</p>
+        <pre><code>import { Modal } from '@/components/Modal';
+
+&lt;Modal visible={isVisible} onClose={handleClose}&gt;
+  &lt;Text&gt;Modal Content&lt;/Text&gt;
+&lt;/Modal&gt;</code></pre>
+      </div>
+
+      <div class="component-card">
+        <h4>Alert</h4>
+        <p>Alert component for displaying messages.</p>
+        <pre><code>import { Alert } from '@/components/Alert';
+
+&lt;Alert type="error" message="Something went wrong" /&gt;</code></pre>
+      </div>
+
+      <div class="component-card">
+        <h4>Toast</h4>
+        <p>Toast notification system with provider.</p>
+        <pre><code>import { useToast } from '@/components/Toast';
+
+const { showToast } = useToast();
+showToast({ type: 'success', message: 'Saved!' });</code></pre>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+

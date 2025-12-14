@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Usage Guide - InsurTech App</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      background: #f5f5f5;
+    }
+    .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+    header {
+      background: linear-gradient(135deg, #0b69ff 0%, #0052cc 100%);
+      color: white;
+      padding: 30px 20px;
+      margin-bottom: 30px;
+      border-radius: 8px;
+    }
+    .back-link { color: white; text-decoration: none; margin-bottom: 10px; display: inline-block; }
+    h1 { font-size: 2em; }
+    .section {
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      margin-bottom: 30px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    h2 {
+      color: #0b69ff;
+      margin-bottom: 20px;
+      font-size: 1.8em;
+      border-bottom: 2px solid #0b69ff;
+      padding-bottom: 10px;
+    }
+    h3 {
+      color: #333;
+      margin-top: 20px;
+      margin-bottom: 15px;
+      font-size: 1.3em;
+    }
+    code {
+      background: #f4f4f4;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9em;
+    }
+    pre {
+      background: #2d2d2d;
+      color: #f8f8f2;
+      padding: 15px;
+      border-radius: 5px;
+      overflow-x: auto;
+      margin: 15px 0;
+    }
+    .tip {
+      background: #e3f2fd;
+      border-left: 4px solid #0b69ff;
+      padding: 15px;
+      margin: 15px 0;
+      border-radius: 4px;
+    }
+    .warning {
+      background: #fff3e0;
+      border-left: 4px solid #ff9800;
+      padding: 15px;
+      margin: 15px 0;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <a href="index.html" class="back-link">← Back to Documentation</a>
+      <h1>Usage Guide</h1>
+      <p>How to use the InsurTech App scaffold</p>
+    </header>
+
+    <div class="section">
+      <h2>Getting Started</h2>
+      
+      <h3>1. Install Dependencies</h3>
+      <pre><code>npm install
+# or
+yarn install</code></pre>
+
+      <h3>2. Generate Design Tokens from Figma</h3>
+      <p>Export your Figma variables as JSON and run:</p>
+      <pre><code>npm run generate-tokens</code></pre>
+      <p>Or with a file:</p>
+      <pre><code>cat example-figma-variables.json | npm run generate-tokens</code></pre>
+
+      <h3>3. Start Development</h3>
+      <pre><code># Start Metro bundler
+npm start
+
+# In another terminal, run on device:
+npm run ios
+# or
+npm run android</code></pre>
+    </div>
+
+    <div class="section">
+      <h2>Component Usage</h2>
+
+      <h3>Basic Components</h3>
+      <pre><code>import { Text, Box, Button } from '@/components/primitives';
+
+&lt;Box p={16} className="bg-white rounded-lg"&gt;
+  &lt;Text variant="h1" className="text-primary"&gt;
+    Hello World
+  &lt;/Text&gt;
+  &lt;Button variant="primary" onPress={handlePress}&gt;
+    Click Me
+  &lt;/Button&gt;
+&lt;/Box&gt;</code></pre>
+
+      <h3>Form Components</h3>
+      <pre><code>import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { FormField } from '@/components/form';
+
+const schema = z.object({
+  email: z.string().email(),
+  password: z.string().min(8),
+});
+
+const { control, handleSubmit } = useForm({
+  resolver: zodResolver(schema),
+});
+
+&lt;FormField
+  control={control}
+  name="email"
+  label="Email"
+  placeholder="Enter email"
+/&gt;</code></pre>
+    </div>
+
+    <div class="section">
+      <h2>Scaling Utilities</h2>
+      <p>Use scaling functions for responsive design:</p>
+      <pre><code>import { s, vs, ms, fs } from '@/utils/scale';
+
+// Scale width (based on screen width)
+const width = s(100);
+
+// Scale height (based on screen height)
+const height = vs(50);
+
+// Scale padding/margin (moderate scaling)
+const padding = ms(16);
+
+// Scale font size
+const fontSize = fs(16);</code></pre>
+
+      <div class="tip">
+        <strong>Tip:</strong> Use <code>ms()</code> for padding and margins, <code>fs()</code> for font sizes, and <code>s()</code> or <code>vs()</code> for specific width/height needs.
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Styling Approach</h2>
+      
+      <h3>Combining Tailwind Classes and Scaled Props</h3>
+      <pre><code>// Use className for colors, layout, and Tailwind utilities
+// Use scaled props (p, m, size) for Figma-specified dimensions
+
+&lt;Box
+  p={16}                    // Scaled padding from Figma
+  className="bg-white rounded-lg flex-row items-center"
+&gt;
+  &lt;Text
+    size={16}               // Scaled font size from Figma
+    className="text-primary font-semibold"
+  &gt;
+    Text
+  &lt;/Text&gt;
+&lt;/Box&gt;</code></pre>
+
+      <div class="tip">
+        <strong>Best Practice:</strong> Use Tailwind classes for colors, layout (flex, grid), and utilities. Use scaled props for dimensions specified in Figma designs.
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Authentication Flow</h2>
+      
+      <h3>Login</h3>
+      <pre><code>import api from '@/services/api';
+import { authStore } from '@/stores/authStore';
+
+const response = await api.post('/auth/login', {
+  email: 'user@example.com',
+  password: 'password123',
+});
+
+const { user, token, refreshToken } = response.data;
+authStore.getState().login(user, token, refreshToken);</code></pre>
+
+      <h3>Check Auth Status</h3>
+      <pre><code>import { authStore } from '@/stores/authStore';
+
+const isAuthenticated = authStore((state) => state.isAuthenticated);
+const user = authStore((state) => state.user);</code></pre>
+
+      <h3>Logout</h3>
+      <pre><code>authStore.getState().logout();</code></pre>
+    </div>
+
+    <div class="section">
+      <h2>Internationalization</h2>
+      <pre><code>import { useTranslation } from 'react-i18next';
+
+const { t, i18n } = useTranslation();
+
+// Translate
+const title = t('auth.login.title');
+
+// Change language
+i18n.changeLanguage('es');</code></pre>
+    </div>
+
+    <div class="section">
+      <h2>Toast Notifications</h2>
+      <pre><code>import { useToast } from '@/components/Toast';
+
+const { showToast } = useToast();
+
+showToast({
+  type: 'success',
+  message: 'Saved successfully!',
+  duration: 3000, // optional
+});</code></pre>
+    </div>
+
+    <div class="section">
+      <h2>Mock Server</h2>
+      <p>The app includes a mock server for development. Default credentials:</p>
+      <ul>
+        <li><strong>Email:</strong> user@example.com</li>
+        <li><strong>Password:</strong> password123</li>
+      </ul>
+      <p>OTP codes are logged to console in development mode.</p>
+    </div>
+
+    <div class="section">
+      <h2>Testing</h2>
+      <pre><code># Run tests
+npm test
+
+# Run with coverage
+npm test -- --coverage</code></pre>
+    </div>
+
+    <div class="warning">
+      <strong>Note:</strong> Remember to replace the mock server with actual API endpoints in production. Update <code>src/services/api.ts</code> with your production base URL.
+    </div>
+  </div>
+</body>
+</html>
+

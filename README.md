@@ -1,97 +1,223 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# InsurTech App
 
-# Getting Started
+A production-ready React Native TypeScript scaffold with NativeWind (Tailwind), responsive scaling, complete auth flows, and comprehensive component library.
 
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
+## Features
 
-## Step 1: Start Metro
+- ✅ React Native CLI 0.82.0 with TypeScript (strict mode)
+- ✅ NativeWind (Tailwind CSS for React Native)
+- ✅ Responsive scaling utilities (react-native-size-matters pattern)
+- ✅ React Hook Form + Zod validation
+- ✅ Axios with interceptors (auth + refresh token)
+- ✅ Zustand for state management (persisted)
+- ✅ i18next for internationalization (EN + ES)
+- ✅ Complete auth flows (Login, Register, Forgot Password, OTP, Reset)
+- ✅ Mock server for development
+- ✅ Figma token generator
+- ✅ Comprehensive component library
+- ✅ Full TypeScript support
+- ✅ ESLint + Prettier configuration
 
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
+## Quick Start
 
-To start the Metro dev server, run the following command from the root of your React Native project:
+### Installation
 
-```sh
-# Using npm
+```bash
+npm install
+# or
+yarn install
+```
+
+### Run the App
+
+```bash
+# Start Metro bundler
 npm start
 
-# OR using Yarn
-yarn start
-```
-
-## Step 2: Build and run your app
-
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
-
-### Android
-
-```sh
-# Using npm
-npm run android
-
-# OR using Yarn
-yarn android
-```
-
-### iOS
-
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
-
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
-
-```sh
-bundle install
-```
-
-Then, and every time you update your native dependencies, run:
-
-```sh
-bundle exec pod install
-```
-
-For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
-
-```sh
-# Using npm
+# Run on iOS
 npm run ios
 
-# OR using Yarn
-yarn ios
+# Run on Android
+npm run android
 ```
 
-If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
+## Generate Tokens from Figma
 
-This is one way to run your app — you can also build it directly from Android Studio or Xcode.
+1. Export your Figma variables as JSON
+2. Run the generator:
 
-## Step 3: Modify your app
+```bash
+npm run generate-tokens
+```
 
-Now that you have successfully run the app, let's make changes!
+Or with custom input:
 
-Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
+```bash
+cat figma-variables.json | npm run generate-tokens
+```
 
-When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
+### Figma JSON Format
 
-- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
-- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
+```json
+{
+  "colors": {
+    "primary": "#0b69ff",
+    "muted": "#f3f4f6"
+  },
+  "spacing": {
+    "xs": 4,
+    "sm": 8,
+    "md": 16
+  },
+  "typeScale": {
+    "h1": 32,
+    "h2": 24,
+    "body": 16
+  }
+}
+```
 
-## Congratulations! :tada:
+The generator will:
+- Create `src/styles/tokens.ts` with design tokens
+- Update `tailwind.config.js` with extended theme
 
-You've successfully run and modified your React Native App. :partying_face:
+## Project Structure
 
-### Now what?
+```
+src/
+├── app/              # App providers
+├── components/       # Reusable components
+│   ├── primitives/   # Base UI components
+│   └── form/         # Form components
+├── features/         # Feature modules
+│   └── auth/         # Auth feature
+│       └── screens/  # Auth screens
+├── navigation/       # Navigation setup
+├── services/         # API services
+├── stores/           # Zustand stores
+├── styles/           # Design tokens
+├── utils/            # Utility functions
+└── i18n/            # Internationalization
+```
 
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
+## Usage Examples
 
-# Troubleshooting
+### Components
 
-If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
+```tsx
+import { Text, Box, Button } from '@/components/primitives';
 
-# Learn More
+<Box p={16} className="bg-white rounded-lg">
+  <Text variant="h1" className="text-primary">
+    Hello World
+  </Text>
+  <Button variant="primary" onPress={handlePress}>
+    Click Me
+  </Button>
+</Box>
+```
 
-To learn more about React Native, take a look at the following resources:
+### Scaling Utilities
 
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+```tsx
+import { s, vs, ms, fs } from '@/utils/scale';
+
+const width = s(100);      // Scale width
+const height = vs(50);     // Scale height
+const padding = ms(16);     // Scale padding
+const fontSize = fs(16);    // Scale font size
+```
+
+### Forms
+
+```tsx
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { FormField } from '@/components/form';
+
+const schema = z.object({
+  email: z.string().email(),
+  password: z.string().min(8),
+});
+
+const { control, handleSubmit } = useForm({
+  resolver: zodResolver(schema),
+});
+
+<FormField
+  control={control}
+  name="email"
+  label="Email"
+  placeholder="Enter email"
+/>
+```
+
+### Auth Store
+
+```tsx
+import { authStore } from '@/stores/authStore';
+
+const user = authStore((state) => state.user);
+const login = authStore((state) => state.login);
+const logout = authStore((state) => state.logout);
+```
+
+### API Calls
+
+```tsx
+import api from '@/services/api';
+
+const response = await api.post('/auth/login', {
+  email: 'user@example.com',
+  password: 'password123',
+});
+```
+
+## Mock Server
+
+The app includes a mock server for development. Default test credentials:
+
+- **Email:** user@example.com
+- **Password:** password123
+
+OTP codes are logged to console in development mode.
+
+## Documentation
+
+See the `docs/` folder for comprehensive documentation:
+
+- [Components](docs/components.html)
+- [Styling Guide](docs/styling.html)
+- [Screens](docs/screens.html)
+- [Project Structure](docs/structure.html)
+- [Dependencies](docs/dependencies.html)
+- [Hooks](docs/hooks.html)
+- [Utils](docs/utils.html)
+- [Services](docs/services.html)
+- [Stores](docs/stores.html)
+
+## Testing
+
+```bash
+npm test
+```
+
+## Linting & Formatting
+
+```bash
+# Lint
+npm run lint
+
+# Format (with Prettier)
+npx prettier --write .
+```
+
+## TypeScript
+
+The project uses TypeScript with strict mode enabled. Path aliases are configured:
+
+- `@/*` → `src/*`
+
+## License
+
+Private - InsurTech App

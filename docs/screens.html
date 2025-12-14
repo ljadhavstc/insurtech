@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Screens - InsurTech App</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      background: #f5f5f5;
+    }
+    .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+    header {
+      background: linear-gradient(135deg, #0b69ff 0%, #0052cc 100%);
+      color: white;
+      padding: 30px 20px;
+      margin-bottom: 30px;
+      border-radius: 8px;
+    }
+    .back-link { color: white; text-decoration: none; margin-bottom: 10px; display: inline-block; }
+    h1 { font-size: 2em; }
+    .section {
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      margin-bottom: 30px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    h2 {
+      color: #0b69ff;
+      margin-bottom: 20px;
+      font-size: 1.8em;
+      border-bottom: 2px solid #0b69ff;
+      padding-bottom: 10px;
+    }
+    .screen-card {
+      background: #f9fafb;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      border-left: 4px solid #0b69ff;
+    }
+    .screen-card h3 {
+      color: #0b69ff;
+      margin-bottom: 10px;
+      font-size: 1.3em;
+    }
+    code {
+      background: #f4f4f4;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9em;
+    }
+    pre {
+      background: #2d2d2d;
+      color: #f8f8f2;
+      padding: 15px;
+      border-radius: 5px;
+      overflow-x: auto;
+      margin: 15px 0;
+    }
+    ul { margin-left: 20px; margin-top: 10px; }
+    li { margin-bottom: 8px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <a href="index.html" class="back-link">← Back to Documentation</a>
+      <h1>Screens</h1>
+      <p>Authentication and feature screens</p>
+    </header>
+
+    <div class="section">
+      <h2>Authentication Screens</h2>
+
+      <div class="screen-card">
+        <h3>LoginScreen</h3>
+        <p><strong>Path:</strong> <code>src/features/auth/screens/LoginScreen.tsx</strong></p>
+        <p>User login screen with email and password fields.</p>
+        <ul>
+          <li>Email and password input fields</li>
+          <li>Form validation with react-hook-form + zod</li>
+          <li>Forgot password link</li>
+          <li>Sign up navigation link</li>
+          <li>Loading state during login</li>
+          <li>Error handling with toast notifications</li>
+        </ul>
+        <pre><code>// Navigation
+navigation.navigate('Login');</code></pre>
+      </div>
+
+      <div class="screen-card">
+        <h3>RegisterScreen</h3>
+        <p><strong>Path:</strong> <code>src/features/auth/screens/RegisterScreen.tsx</strong></p>
+        <p>User registration screen with name, email, password, and confirm password.</p>
+        <ul>
+          <li>Name, email, password, and confirm password fields</li>
+          <li>Password matching validation</li>
+          <li>Form validation with react-hook-form + zod</li>
+          <li>Sign in navigation link</li>
+          <li>Loading state during registration</li>
+        </ul>
+      </div>
+
+      <div class="screen-card">
+        <h3>ForgotPasswordScreen</h3>
+        <p><strong>Path:</strong> <code>src/features/auth/screens/ForgotPasswordScreen.tsx</strong></p>
+        <p>Screen for requesting password reset OTP.</p>
+        <ul>
+          <li>Email input field</li>
+          <li>Sends OTP to user's email</li>
+          <li>Navigates to OTP verification on success</li>
+          <li>Back to login link</li>
+        </ul>
+      </div>
+
+      <div class="screen-card">
+        <h3>OTPVerificationScreen</h3>
+        <p><strong>Path:</strong> <code>src/features/auth/screens/OTPVerificationScreen.tsx</strong></p>
+        <p>Screen for verifying OTP code sent to user's email.</p>
+        <ul>
+          <li>6-digit OTP input field</li>
+          <li>OTP validation</li>
+          <li>Resend OTP functionality</li>
+          <li>Navigates to reset password on success</li>
+        </ul>
+      </div>
+
+      <div class="screen-card">
+        <h3>ResetPasswordScreen</h3>
+        <p><strong>Path:</strong> <code>src/features/auth/screens/ResetPasswordScreen.tsx</strong></p>
+        <p>Screen for resetting password after OTP verification.</p>
+        <ul>
+          <li>New password and confirm password fields</li>
+          <li>Password matching validation</li>
+          <li>Navigates to login on success</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>App Screens</h2>
+
+      <div class="screen-card">
+        <h3>HomeScreen</h3>
+        <p><strong>Path:</strong> <code>src/navigation/RootNavigator.tsx</code> (placeholder)</p>
+        <p>Main home screen shown after authentication.</p>
+        <ul>
+          <li>Welcome message</li>
+          <li>User email display</li>
+        </ul>
+      </div>
+
+      <div class="screen-card">
+        <h3>ProfileScreen</h3>
+        <p><strong>Path:</strong> <code>src/navigation/RootNavigator.tsx</code> (placeholder)</p>
+        <p>User profile screen.</p>
+        <ul>
+          <li>User information display</li>
+          <li>Logout functionality</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Navigation Flow</h2>
+      <pre><code>Auth Stack:
+  Login → Register
+  Login → ForgotPassword → OTPVerification → ResetPassword → Login
+
+App Stack (after authentication):
+  Home (Tab)
+  Profile (Tab)</code></pre>
+    </div>
+  </div>
+</body>
+</html>
+

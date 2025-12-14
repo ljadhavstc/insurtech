@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hooks - InsurTech App</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      background: #f5f5f5;
+    }
+    .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+    header {
+      background: linear-gradient(135deg, #0b69ff 0%, #0052cc 100%);
+      color: white;
+      padding: 30px 20px;
+      margin-bottom: 30px;
+      border-radius: 8px;
+    }
+    .back-link { color: white; text-decoration: none; margin-bottom: 10px; display: inline-block; }
+    h1 { font-size: 2em; }
+    .section {
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      margin-bottom: 30px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    h2 {
+      color: #0b69ff;
+      margin-bottom: 20px;
+      font-size: 1.8em;
+      border-bottom: 2px solid #0b69ff;
+      padding-bottom: 10px;
+    }
+    .hook-card {
+      background: #f9fafb;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      border-left: 4px solid #0b69ff;
+    }
+    .hook-card h3 {
+      color: #0b69ff;
+      margin-bottom: 10px;
+      font-size: 1.3em;
+    }
+    code {
+      background: #f4f4f4;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9em;
+    }
+    pre {
+      background: #2d2d2d;
+      color: #f8f8f2;
+      padding: 15px;
+      border-radius: 5px;
+      overflow-x: auto;
+      margin: 15px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <a href="index.html" class="back-link">← Back to Documentation</a>
+      <h1>Hooks</h1>
+      <p>Custom React hooks</p>
+    </header>
+
+    <div class="section">
+      <h2>Custom Hooks</h2>
+
+      <div class="hook-card">
+        <h3>useToast</h3>
+        <p><strong>Location:</strong> <code>src/components/Toast.tsx</code></p>
+        <p>Hook for showing toast notifications.</p>
+        <pre><code>import { useToast } from '@/components/Toast';
+
+const { showToast, hideToast } = useToast();
+
+// Show toast
+showToast({
+  type: 'success',
+  message: 'Saved successfully!',
+  duration: 3000, // optional
+});
+
+// Hide specific toast
+hideToast(toastId);</code></pre>
+        <p><strong>Returns:</strong></p>
+        <ul>
+          <li><code>showToast</code> - Function to show a toast</li>
+          <li><code>hideToast</code> - Function to hide a toast by ID</li>
+        </ul>
+      </div>
+
+      <div class="hook-card">
+        <h3>Zustand Store Hooks</h3>
+        <p><strong>Location:</strong> <code>src/stores/authStore.ts</code></p>
+        <p>Hooks for accessing auth store state and actions.</p>
+        <pre><code>import { authStore } from '@/stores/authStore';
+
+// Get specific state
+const user = authStore((state) => state.user);
+const isAuthenticated = authStore((state) => state.isAuthenticated);
+
+// Get actions
+const login = authStore((state) => state.login);
+const logout = authStore((state) => state.logout);
+
+// Get multiple values
+const { user, token, login, logout } = authStore();</code></pre>
+      </div>
+
+      <div class="hook-card">
+        <h3>React Hook Form Hooks</h3>
+        <p><strong>Location:</strong> Used in form screens</p>
+        <p>Hooks from react-hook-form for form management.</p>
+        <pre><code>import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+
+const {
+  control,
+  handleSubmit,
+  formState: { errors },
+  watch,
+  reset,
+} = useForm({
+  resolver: zodResolver(schema),
+  defaultValues: { ... },
+});</code></pre>
+      </div>
+
+      <div class="hook-card">
+        <h3>React Navigation Hooks</h3>
+        <p><strong>Location:</strong> Used in screens</p>
+        <p>Hooks from React Navigation for navigation.</p>
+        <pre><code>import { useNavigation, useRoute } from '@react-navigation/native';
+
+const navigation = useNavigation();
+const route = useRoute();
+
+// Navigate
+navigation.navigate('ScreenName', { params });
+
+// Go back
+navigation.goBack();</code></pre>
+      </div>
+
+      <div class="hook-card">
+        <h3>i18next Hooks</h3>
+        <p><strong>Location:</strong> Used throughout app</p>
+        <p>Hooks from react-i18next for translations.</p>
+        <pre><code>import { useTranslation } from 'react-i18next';
+
+const { t, i18n } = useTranslation();
+
+// Translate
+const title = t('auth.login.title');
+
+// Change language
+i18n.changeLanguage('es');</code></pre>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+

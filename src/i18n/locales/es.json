@@ -1,0 +1,76 @@
+{
+  "auth": {
+    "login": {
+      "title": "Bienvenido de Nuevo",
+      "subtitle": "Inicia sesión para continuar",
+      "email": "Correo Electrónico",
+      "password": "Contraseña",
+      "forgotPassword": "¿Olvidaste tu contraseña?",
+      "loginButton": "Iniciar Sesión",
+      "noAccount": "¿No tienes una cuenta?",
+      "signUp": "Regístrate",
+      "emailRequired": "El correo electrónico es obligatorio",
+      "emailInvalid": "Por favor ingresa un correo electrónico válido",
+      "passwordRequired": "La contraseña es obligatoria",
+      "passwordMinLength": "La contraseña debe tener al menos 8 caracteres"
+    },
+    "register": {
+      "title": "Crear Cuenta",
+      "subtitle": "Regístrate para comenzar",
+      "name": "Nombre Completo",
+      "email": "Correo Electrónico",
+      "password": "Contraseña",
+      "confirmPassword": "Confirmar Contraseña",
+      "registerButton": "Regístrate",
+      "haveAccount": "¿Ya tienes una cuenta?",
+      "signIn": "Iniciar Sesión",
+      "nameRequired": "El nombre es obligatorio",
+      "emailRequired": "El correo electrónico es obligatorio",
+      "emailInvalid": "Por favor ingresa un correo electrónico válido",
+      "passwordRequired": "La contraseña es obligatoria",
+      "passwordMinLength": "La contraseña debe tener al menos 8 caracteres",
+      "confirmPasswordRequired": "Por favor confirma tu contraseña",
+      "passwordsMatch": "Las contraseñas no coinciden"
+    },
+    "forgotPassword": {
+      "title": "Olvidé mi Contraseña",
+      "subtitle": "Ingresa tu correo electrónico para recibir un OTP",
+      "email": "Correo Electrónico",
+      "sendOTP": "Enviar OTP",
+      "backToLogin": "Volver al Inicio de Sesión",
+      "emailRequired": "El correo electrónico es obligatorio",
+      "emailInvalid": "Por favor ingresa un correo electrónico válido"
+    },
+    "otpVerification": {
+      "title": "Verificar OTP",
+      "subtitle": "Ingresa el código de 6 dígitos enviado a tu correo electrónico",
+      "otp": "Código OTP",
+      "verify": "Verificar",
+      "resend": "Reenviar OTP",
+      "otpRequired": "El OTP es obligatorio",
+      "otpInvalid": "Por favor ingresa un OTP válido de 6 dígitos"
+    },
+    "resetPassword": {
+      "title": "Restablecer Contraseña",
+      "subtitle": "Ingresa tu nueva contraseña",
+      "newPassword": "Nueva Contraseña",
+      "confirmPassword": "Confirmar Contraseña",
+      "reset": "Restablecer Contraseña",
+      "passwordRequired": "La contraseña es obligatoria",
+      "passwordMinLength": "La contraseña debe tener al menos 8 caracteres",
+      "confirmPasswordRequired": "Por favor confirma tu contraseña",
+      "passwordsMatch": "Las contraseñas no coinciden"
+    }
+  },
+  "common": {
+    "loading": "Cargando...",
+    "error": "Ocurrió un error",
+    "success": "Éxito",
+    "cancel": "Cancelar",
+    "confirm": "Confirmar",
+    "save": "Guardar",
+    "delete": "Eliminar",
+    "edit": "Editar"
+  }
+}
+

@@ -73,3 +73,33 @@ yarn-error.log
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+
+# React Native / TypeScript
+*.log
+*.tsbuildinfo
+.env
+.env.local
+.env.*.local
+
+# NativeWind / Tailwind
+.nativewind/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Documentation build
+docs/_build/

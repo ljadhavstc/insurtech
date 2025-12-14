@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>InsurTech App - Documentation</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      background: #f5f5f5;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    header {
+      background: linear-gradient(135deg, #0b69ff 0%, #0052cc 100%);
+      color: white;
+      padding: 40px 20px;
+      text-align: center;
+      margin-bottom: 30px;
+      border-radius: 8px;
+    }
+    h1 { font-size: 2.5em; margin-bottom: 10px; }
+    .subtitle { font-size: 1.2em; opacity: 0.9; }
+    .nav {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      margin-bottom: 40px;
+    }
+    .nav-card {
+      background: white;
+      padding: 25px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .nav-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+    .nav-card h2 {
+      color: #0b69ff;
+      margin-bottom: 10px;
+      font-size: 1.5em;
+    }
+    .nav-card p {
+      color: #666;
+      margin-bottom: 15px;
+    }
+    .nav-card a {
+      color: #0b69ff;
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .nav-card a:hover {
+      text-decoration: underline;
+    }
+    .section {
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      margin-bottom: 30px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .section h2 {
+      color: #0b69ff;
+      margin-bottom: 20px;
+      font-size: 2em;
+      border-bottom: 2px solid #0b69ff;
+      padding-bottom: 10px;
+    }
+    .section h3 {
+      color: #333;
+      margin-top: 25px;
+      margin-bottom: 15px;
+      font-size: 1.3em;
+    }
+    .section ul, .section ol {
+      margin-left: 20px;
+      margin-bottom: 15px;
+    }
+    .section li {
+      margin-bottom: 8px;
+    }
+    code {
+      background: #f4f4f4;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9em;
+    }
+    pre {
+      background: #2d2d2d;
+      color: #f8f8f2;
+      padding: 15px;
+      border-radius: 5px;
+      overflow-x: auto;
+      margin: 15px 0;
+    }
+    pre code {
+      background: none;
+      padding: 0;
+      color: inherit;
+    }
+    .badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.8em;
+      font-weight: 600;
+      margin-left: 8px;
+    }
+    .badge-primary { background: #0b69ff; color: white; }
+    .badge-success { background: #28a745; color: white; }
+    .badge-warning { background: #ffc107; color: #333; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>InsurTech App</h1>
+      <p class="subtitle">React Native TypeScript Scaffold Documentation</p>
+    </header>
+
+    <div class="nav">
+      <div class="nav-card">
+        <h2>📱 Components</h2>
+        <p>Reusable UI components and primitives</p>
+        <a href="components.html">View Components →</a>
+      </div>
+      <div class="nav-card">
+        <h2>🎨 Styling Guide</h2>
+        <p>Typography, colors, spacing, and Tailwind classes</p>
+        <a href="styling.html">View Styling Guide →</a>
+      </div>
+      <div class="nav-card">
+        <h2>🎨 Design Tokens Guide <span class="badge badge-success">NEW</span></h2>
+        <p>Complete reference for typography, colors, spacing, and design elements with examples</p>
+        <a href="design-tokens-guide.html">View Design Tokens Guide →</a>
+      </div>
+      <div class="nav-card">
+        <h2>📄 Screens</h2>
+        <p>Authentication and feature screens</p>
+        <a href="screens.html">View Screens →</a>
+      </div>
+      <div class="nav-card">
+        <h2>🔧 Project Structure</h2>
+        <p>Files, folders, and their purposes</p>
+        <a href="structure.html">View Structure →</a>
+      </div>
+      <div class="nav-card">
+        <h2>📦 Dependencies</h2>
+        <p>All packages and their purposes</p>
+        <a href="dependencies.html">View Dependencies →</a>
+      </div>
+      <div class="nav-card">
+        <h2>🪝 Hooks</h2>
+        <p>Custom React hooks</p>
+        <a href="hooks.html">View Hooks →</a>
+      </div>
+      <div class="nav-card">
+        <h2>🛠️ Utils</h2>
+        <p>Utility functions and helpers</p>
+        <a href="utils.html">View Utils →</a>
+      </div>
+      <div class="nav-card">
+        <h2>🌐 Services</h2>
+        <p>API services and mock server</p>
+        <a href="services.html">View Services →</a>
+      </div>
+      <div class="nav-card">
+        <h2>💾 Stores</h2>
+        <p>State management with Zustand</p>
+        <a href="stores.html">View Stores →</a>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Quick Start</h2>
+      <h3>Installation</h3>
+      <pre><code>npm install
+# or
+yarn install</code></pre>
+
+      <h3>Run the App</h3>
+      <pre><code># Start Metro bundler
+npm start
+
+# Run on iOS
+npm run ios
+
+# Run on Android
+npm run android</code></pre>
+
+      <h3>Generate Tokens from Figma</h3>
+      <pre><code># Paste Figma variables JSON and run:
+npm run generate-tokens
+
+# Or with custom input:
+cat figma-variables.json | npm run generate-tokens</code></pre>
+    </div>
+
+    <div class="section">
+      <h2>Features</h2>
+      <ul>
+        <li>✅ React Native CLI with TypeScript</li>
+        <li>✅ NativeWind (Tailwind CSS for React Native)</li>
+        <li>✅ Responsive scaling utilities (react-native-size-matters pattern)</li>
+        <li>✅ React Hook Form + Zod validation</li>
+        <li>✅ Axios with interceptors (auth + refresh token)</li>
+        <li>✅ Zustand for state management (persisted)</li>
+        <li>✅ i18next for internationalization (EN + ES)</li>
+        <li>✅ Complete auth flows (Login, Register, Forgot Password, OTP, Reset)</li>
+        <li>✅ Mock server for development</li>
+        <li>✅ Figma token generator</li>
+        <li>✅ Comprehensive component library</li>
+        <li>✅ Full TypeScript support with strict mode</li>
+        <li>✅ ESLint + Prettier configuration</li>
+      </ul>
+    </div>
+  </div>
+</body>
+</html>
+

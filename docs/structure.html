@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Project Structure - InsurTech App</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      background: #f5f5f5;
+    }
+    .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+    header {
+      background: linear-gradient(135deg, #0b69ff 0%, #0052cc 100%);
+      color: white;
+      padding: 30px 20px;
+      margin-bottom: 30px;
+      border-radius: 8px;
+    }
+    .back-link { color: white; text-decoration: none; margin-bottom: 10px; display: inline-block; }
+    h1 { font-size: 2em; }
+    .section {
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      margin-bottom: 30px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    h2 {
+      color: #0b69ff;
+      margin-bottom: 20px;
+      font-size: 1.8em;
+      border-bottom: 2px solid #0b69ff;
+      padding-bottom: 10px;
+    }
+    .folder-tree {
+      font-family: 'Courier New', monospace;
+      background: #f9fafb;
+      padding: 20px;
+      border-radius: 8px;
+      margin: 15px 0;
+      overflow-x: auto;
+    }
+    .folder-tree .folder {
+      color: #0b69ff;
+      font-weight: 600;
+    }
+    .folder-tree .file {
+      color: #6b7280;
+    }
+    .folder-tree .description {
+      color: #9ca3af;
+      font-style: italic;
+      margin-left: 20px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 15px 0;
+    }
+    th, td {
+      padding: 10px;
+      text-align: left;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    th {
+      background: #f3f4f6;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <a href="index.html" class="back-link">← Back to Documentation</a>
+      <h1>Project Structure</h1>
+      <p>Files, folders, and their purposes</p>
+    </header>
+
+    <div class="section">
+      <h2>Directory Structure</h2>
+      <div class="folder-tree">
+<pre>
+insurtech/
+├── src/
+│   ├── app/
+│   │   └── providers.tsx          # Root app providers
+│   ├── components/
+│   │   ├── primitives/            # Base UI components
+│   │   │   ├── Text.tsx
+│   │   │   ├── Box.tsx
+│   │   │   ├── Button.tsx
+│   │   │   ├── Input.tsx
+│   │   │   ├── IconButton.tsx
+│   │   │   └── Spacer.tsx
+│   │   ├── form/                  # Form components
+│   │   │   ├── FormField.tsx
+│   │   │   └── Dropdown.tsx
+│   │   ├── Modal.tsx
+│   │   ├── Alert.tsx
+│   │   └── Toast.tsx
+│   ├── features/
+│   │   └── auth/
+│   │       └── screens/           # Auth screens
+│   │           ├── LoginScreen.tsx
+│   │           ├── RegisterScreen.tsx
+│   │           ├── ForgotPasswordScreen.tsx
+│   │           ├── OTPVerificationScreen.tsx
+│   │           └── ResetPasswordScreen.tsx
+│   ├── navigation/
+│   │   └── RootNavigator.tsx      # Main navigation
+│   ├── services/
+│   │   ├── api.ts                 # Axios instance with interceptors
+│   │   └── mockServer.ts          # Mock API server
+│   ├── stores/
+│   │   └── authStore.ts           # Zustand auth store
+│   ├── styles/
+│   │   ├── tokens.ts              # Design tokens
+│   │   └── figmaTokenMap.json     # Token to class mapping
+│   ├── utils/
+│   │   └── scale.ts               # Scaling utilities
+│   └── i18n/
+│       ├── index.ts               # i18n configuration
+│       └── locales/
+│           ├── en.json            # English translations
+│           └── es.json            # Spanish translations
+├── scripts/
+│   └── generateTokensFromFigma.ts # Figma token generator
+├── __tests__/                     # Test files
+├── docs/                          # Documentation HTML files
+├── App.tsx                        # App entry point
+├── global.css                     # NativeWind global styles
+├── tailwind.config.js             # Tailwind configuration
+├── tsconfig.json                  # TypeScript configuration
+├── babel.config.js                # Babel configuration
+├── metro.config.js                # Metro bundler configuration
+├── .eslintrc.js                   # ESLint configuration
+├── .prettierrc.js                 # Prettier configuration
+└── package.json                   # Dependencies and scripts
+</pre>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Key Files and Folders</h2>
+      <table>
+        <tr><th>Path</th><th>Purpose</th></tr>
+        <tr><td>App.tsx</td><td>Main app entry point with providers and navigation</td></tr>
+        <tr><td>src/app/providers.tsx</td><td>Root providers (SafeArea, Toast, GestureHandler)</td></tr>
+        <tr><td>src/navigation/RootNavigator.tsx</td><td>Main navigation setup with Auth/App stacks</td></tr>
+        <tr><td>src/components/primitives/</td><td>Base reusable UI components</td></tr>
+        <tr><td>src/components/form/</td><td>Form-specific components with RHF integration</td></tr>
+        <tr><td>src/features/auth/screens/</td><td>Authentication flow screens</td></tr>
+        <tr><td>src/services/api.ts</td><td>Axios instance with auth interceptors</td></tr>
+        <tr><td>src/services/mockServer.ts</td><td>Mock API endpoints for development</td></tr>
+        <tr><td>src/stores/authStore.ts</td><td>Zustand store for auth state (persisted)</td></tr>
+        <tr><td>src/styles/tokens.ts</td><td>Design tokens (colors, spacing, typography)</td></tr>
+        <tr><td>src/utils/scale.ts</td><td>Responsive scaling utilities (s, vs, ms, fs)</td></tr>
+        <tr><td>src/i18n/</td><td>Internationalization setup and translations</td></tr>
+        <tr><td>scripts/generateTokensFromFigma.ts</td><td>Script to generate tokens from Figma JSON</td></tr>
+        <tr><td>tailwind.config.js</td><td>Tailwind CSS configuration with design tokens</td></tr>
+        <tr><td>global.css</td><td>NativeWind global styles</td></tr>
+      </table>
+    </div>
+
+    <div class="section">
+      <h2>File Naming Conventions</h2>
+      <ul>
+        <li><strong>Components:</strong> PascalCase (e.g., <code>Text.tsx</code>, <code>LoginScreen.tsx</code>)</li>
+        <li><strong>Utilities:</strong> camelCase (e.g., <code>scale.ts</code>, <code>api.ts</code>)</li>
+        <li><strong>Stores:</strong> camelCase with "Store" suffix (e.g., <code>authStore.ts</code>)</li>
+        <li><strong>Types:</strong> PascalCase with "Type" or "Props" suffix (e.g., <code>ButtonProps</code>)</li>
+        <li><strong>Constants:</strong> UPPER_SNAKE_CASE (e.g., <code>BASE_URL</code>)</li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <h2>Import Path Aliases</h2>
+      <p>The project uses path aliases configured in <code>tsconfig.json</code>:</p>
+      <pre><code>@/* → src/*
+
+// Examples:
+import { Text } from '@/components/primitives/Text';
+import { authStore } from '@/stores/authStore';
+import { s, ms } from '@/utils/scale';
+import { colors } from '@/styles/tokens';</code></pre>
+    </div>
+  </div>
+</body>
+</html>
+

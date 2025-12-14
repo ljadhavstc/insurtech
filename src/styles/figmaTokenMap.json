@@ -1,0 +1,43 @@
+{
+  "colorMap": {
+    "primary": "text-primary bg-primary border-primary",
+    "secondary": "text-secondary bg-secondary border-secondary",
+    "success": "text-white bg-success border-success",
+    "error": "text-white bg-error border-error",
+    "warning": "text-black bg-warning border-warning",
+    "info": "text-white bg-info border-info",
+    "muted": "text-text-secondary bg-muted border-border"
+  },
+  "sizeMap": {
+    "xs": "text-caption px-xs py-xs",
+    "sm": "text-body-small px-sm py-sm",
+    "md": "text-body px-md py-md",
+    "lg": "text-h4 px-lg py-lg",
+    "xl": "text-h3 px-xl py-xl"
+  },
+  "spacingMap": {
+    "xs": "gap-xs",
+    "sm": "gap-sm",
+    "md": "gap-md",
+    "lg": "gap-lg",
+    "xl": "gap-xl"
+  },
+  "componentSuggestions": {
+    "Button": {
+      "primary": "bg-primary text-white",
+      "secondary": "bg-secondary text-white",
+      "ghost": "bg-transparent border border-primary text-primary",
+      "outline": "bg-transparent border border-gray-300 text-text-primary"
+    },
+    "Input": {
+      "default": "border border-border bg-white text-text-primary",
+      "error": "border border-error bg-white text-text-primary",
+      "focused": "border border-primary bg-white text-text-primary"
+    },
+    "Card": {
+      "default": "bg-white border border-border rounded-lg",
+      "elevated": "bg-white shadow-md rounded-lg"
+    }
+  }
+}
+

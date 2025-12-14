@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dependencies - InsurTech App</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      background: #f5f5f5;
+    }
+    .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+    header {
+      background: linear-gradient(135deg, #0b69ff 0%, #0052cc 100%);
+      color: white;
+      padding: 30px 20px;
+      margin-bottom: 30px;
+      border-radius: 8px;
+    }
+    .back-link { color: white; text-decoration: none; margin-bottom: 10px; display: inline-block; }
+    h1 { font-size: 2em; }
+    .section {
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      margin-bottom: 30px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    h2 {
+      color: #0b69ff;
+      margin-bottom: 20px;
+      font-size: 1.8em;
+      border-bottom: 2px solid #0b69ff;
+      padding-bottom: 10px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 15px 0;
+    }
+    th, td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    th {
+      background: #f3f4f6;
+      font-weight: 600;
+    }
+    .dep-category {
+      background: #f9fafb;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+    .dep-category h3 {
+      color: #0b69ff;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <a href="index.html" class="back-link">← Back to Documentation</a>
+      <h1>Dependencies</h1>
+      <p>All packages and their purposes</p>
+    </header>
+
+    <div class="section">
+      <h2>Production Dependencies</h2>
+
+      <div class="dep-category">
+        <h3>Core</h3>
+        <table>
+          <tr><th>Package</th><th>Version</th><th>Purpose</th></tr>
+          <tr><td>react</td><td>19.1.1</td><td>React library</td></tr>
+          <tr><td>react-native</td><td>0.82.0</td><td>React Native framework</td></tr>
+          <tr><td>react-native-safe-area-context</td><td>^5.5.2</td><td>Safe area handling for notches</td></tr>
+        </table>
+      </div>
+
+      <div class="dep-category">
+        <h3>Styling</h3>
+        <table>
+          <tr><th>Package</th><th>Version</th><th>Purpose</th></tr>
+          <tr><td>nativewind</td><td>^4.1.11</td><td>Tailwind CSS for React Native</td></tr>
+          <tr><td>tailwindcss</td><td>^3.4.17</td><td>Tailwind CSS core (dev dependency)</td></tr>
+        </table>
+      </div>
+
+      <div class="dep-category">
+        <h3>Forms & Validation</h3>
+        <table>
+          <tr><th>Package</th><th>Version</th><th>Purpose</th></tr>
+          <tr><td>react-hook-form</td><td>^7.54.2</td><td>Form state management</td></tr>
+          <tr><td>zod</td><td>^3.24.1</td><td>Schema validation</td></tr>
+          <tr><td>@hookform/resolvers</td><td>^3.9.1</td><td>Zod resolver for react-hook-form</td></tr>
+        </table>
+      </div>
+
+      <div class="dep-category">
+        <h3>Networking</h3>
+        <table>
+          <tr><th>Package</th><th>Version</th><th>Purpose</th></tr>
+          <tr><td>axios</td><td>^1.7.9</td><td>HTTP client with interceptors</td></tr>
+        </table>
+      </div>
+
+      <div class="dep-category">
+        <h3>State Management</h3>
+        <table>
+          <tr><th>Package</th><th>Version</th><th>Purpose</th></tr>
+          <tr><td>zustand</td><td>^5.0.2</td><td>Lightweight state management</td></tr>
+          <tr><td>@react-native-async-storage/async-storage</td><td>^2.1.0</td><td>Persistent storage for Zustand</td></tr>
+        </table>
+      </div>
+
+      <div class="dep-category">
+        <h3>Navigation</h3>
+        <table>
+          <tr><th>Package</th><th>Version</th><th>Purpose</th></tr>
+          <tr><td>@react-navigation/native</td><td>^7.0.15</td><td>React Navigation core</td></tr>
+          <tr><td>@react-navigation/stack</td><td>^7.1.1</td><td>Stack navigator</td></tr>
+          <tr><td>@react-navigation/bottom-tabs</td><td>^7.2.1</td><td>Bottom tab navigator</td></tr>
+          <tr><td>react-native-screens</td><td>^4.4.0</td><td>Native screen components</td></tr>
+        </table>
+      </div>
+
+      <div class="dep-category">
+        <h3>Internationalization</h3>
+        <table>
+          <tr><th>Package</th><th>Version</th><th>Purpose</th></tr>
+          <tr><td>i18next</td><td>^24.2.0</td><td>i18n framework</td></tr>
+          <tr><td>react-i18next</td><td>^15.1.2</td><td>React bindings for i18next</td></tr>
+        </table>
+      </div>
+
+      <div class="dep-category">
+        <h3>Icons</h3>
+        <table>
+          <tr><th>Package</th><th>Version</th><th>Purpose</th></tr>
+          <tr><td>react-native-vector-icons</td><td>^10.2.0</td><td>Icon library</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Development Dependencies</h2>
+      <table>
+        <tr><th>Package</th><th>Version</th><th>Purpose</th></tr>
+        <tr><td>typescript</td><td>^5.8.3</td><td>TypeScript compiler</td></tr>
+        <tr><td>@types/react</td><td>^19.1.1</td><td>React TypeScript types</td></tr>
+        <tr><td>@types/node</td><td>^22.10.2</td><td>Node.js TypeScript types</td></tr>
+        <tr><td>eslint</td><td>^8.19.0</td><td>Linting</td></tr>
+        <tr><td>prettier</td><td>2.8.8</td><td>Code formatting</td></tr>
+        <tr><td>jest</td><td>^29.6.3</td><td>Testing framework</td></tr>
+        <tr><td>@types/jest</td><td>^29.5.13</td><td>Jest TypeScript types</td></tr>
+        <tr><td>ts-node</td><td>^10.9.2</td><td>TypeScript execution for scripts</td></tr>
+        <tr><td>@babel/core</td><td>^7.25.2</td><td>Babel compiler</td></tr>
+        <tr><td>@react-native/babel-preset</td><td>0.82.0</td><td>React Native Babel preset</td></tr>
+        <tr><td>@react-native/metro-config</td><td>0.82.0</td><td>Metro bundler configuration</td></tr>
+        <tr><td>@react-native/typescript-config</td><td>0.82.0</td><td>TypeScript configuration</td></tr>
+      </table>
+    </div>
+  </div>
+</body>
+</html>
+

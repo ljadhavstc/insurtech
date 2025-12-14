@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Utils - InsurTech App</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      background: #f5f5f5;
+    }
+    .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+    header {
+      background: linear-gradient(135deg, #0b69ff 0%, #0052cc 100%);
+      color: white;
+      padding: 30px 20px;
+      margin-bottom: 30px;
+      border-radius: 8px;
+    }
+    .back-link { color: white; text-decoration: none; margin-bottom: 10px; display: inline-block; }
+    h1 { font-size: 2em; }
+    .section {
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      margin-bottom: 30px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    h2 {
+      color: #0b69ff;
+      margin-bottom: 20px;
+      font-size: 1.8em;
+      border-bottom: 2px solid #0b69ff;
+      padding-bottom: 10px;
+    }
+    .util-card {
+      background: #f9fafb;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      border-left: 4px solid #0b69ff;
+    }
+    .util-card h3 {
+      color: #0b69ff;
+      margin-bottom: 10px;
+      font-size: 1.3em;
+    }
+    code {
+      background: #f4f4f4;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9em;
+    }
+    pre {
+      background: #2d2d2d;
+      color: #f8f8f2;
+      padding: 15px;
+      border-radius: 5px;
+      overflow-x: auto;
+      margin: 15px 0;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 15px 0;
+    }
+    th, td {
+      padding: 10px;
+      text-align: left;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    th {
+      background: #f3f4f6;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <a href="index.html" class="back-link">← Back to Documentation</a>
+      <h1>Utils</h1>
+      <p>Utility functions and helpers</p>
+    </header>
+
+    <div class="section">
+      <h2>Scaling Utilities</h2>
+      <p><strong>Location:</strong> <code>src/utils/scale.ts</code></p>
+      <p>Functions for responsive scaling based on device dimensions.</p>
+
+      <div class="util-card">
+        <h3>s(size: number)</h3>
+        <p>Scale a size based on screen width. Use for: width, horizontal sizes.</p>
+        <pre><code>import { s } from '@/utils/scale';
+
+const width = s(100); // 100px on base design, scaled for device</code></pre>
+        <table>
+          <tr><th>Parameter</th><th>Type</th><th>Description</th></tr>
+          <tr><td>size</td><td>number</td><td>Size in pixels from design (Figma)</td></tr>
+        </table>
+        <p><strong>Returns:</strong> Scaled size for current device (rounded)</p>
+      </div>
+
+      <div class="util-card">
+        <h3>vs(size: number)</h3>
+        <p>Scale a size based on screen height. Use for: height, vertical sizes (margins, paddings).</p>
+        <pre><code>import { vs } from '@/utils/scale';
+
+const height = vs(50); // 50px on base design, scaled vertically</code></pre>
+      </div>
+
+      <div class="util-card">
+        <h3>ms(size: number)</h3>
+        <p>Scale a size moderately (average of width and height scaling). Use for: padding, margin, border radius.</p>
+        <pre><code>import { ms } from '@/utils/scale';
+
+const padding = ms(16); // 16px on base design, scaled moderately</code></pre>
+      </div>
+
+      <div class="util-card">
+        <h3>fs(size: number)</h3>
+        <p>Scale font size based on screen width with pixel ratio consideration. Use for: fontSize.</p>
+        <pre><code>import { fs } from '@/utils/scale';
+
+const fontSize = fs(16); // 16px font, scaled for readability</code></pre>
+      </div>
+
+      <div class="util-card">
+        <h3>getScreenDimensions()</h3>
+        <p>Get current screen dimensions.</p>
+        <pre><code>import { getScreenDimensions } from '@/utils/scale';
+
+const { width, height } = getScreenDimensions();</code></pre>
+      </div>
+
+      <div class="util-card">
+        <h3>isTablet()</h3>
+        <p>Check if device is a tablet.</p>
+        <pre><code>import { isTablet } from '@/utils/scale';
+
+if (isTablet()) {
+  // Tablet-specific logic
+}</code></pre>
+      </div>
+
+      <div class="util-card">
+        <h3>isSmallScreen()</h3>
+        <p>Check if device has a small screen.</p>
+        <pre><code>import { isSmallScreen } from '@/utils/scale';
+
+if (isSmallScreen()) {
+  // Small screen-specific logic
+}</code></pre>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Base Dimensions</h2>
+      <p>The scaling functions use iPhone 11 Pro dimensions as the base:</p>
+      <ul>
+        <li><strong>Base Width:</strong> 375px</li>
+        <li><strong>Base Height:</strong> 812px</li>
+      </ul>
+      <p>All scaling is relative to these base dimensions to maintain consistent visual appearance across devices.</p>
+    </div>
+  </div>
+</body>
+</html>
+
