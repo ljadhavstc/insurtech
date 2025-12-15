@@ -2,47 +2,41 @@
  * Button Component
  * 
  * Composes Box + Pressable + Text with variant support.
+ * Matches Figma design system with Solid and Ghost variants.
  * Accepts height and radius in Figma px and scales them with ms().
  * 
  * @example
  * ```tsx
- * <Button variant="primary" onPress={handlePress}>
+ * <Button variant="solid" onPress={handlePress}>
  *   Click Me
  * </Button>
  * ```
  */
 
 import React from 'react';
-import { Pressable, PressableProps, ActivityIndicator, StyleSheet } from 'react-native';
+import { Pressable, PressableProps, ActivityIndicator } from 'react-native';
 import { ms } from '@/utils/scale';
-import { Box } from './Box';
 import { Text } from './Text';
-import { borderRadius } from '@/styles/tokens';
+import { lightTheme, typography } from '@/styles/tokens';
 
-export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'outline' | 'danger';
+export type ButtonVariant = 'solid' | 'ghost';
+export type ButtonSize = 'small' | 'medium' | 'large';
 
 export interface ButtonProps extends Omit<PressableProps, 'style'> {
   /**
-   * Button variant
+   * Button variant (solid or ghost)
    */
   variant?: ButtonVariant;
+  
+  /**
+   * Button size
+   */
+  size?: ButtonSize;
   
   /**
    * Button text/content
    */
   children: React.ReactNode;
-  
-  /**
-   * Button height in Figma px - will be scaled
-   * Default: 48
-   */
-  height?: number;
-  
-  /**
-   * Border radius in Figma px - will be scaled
-   * Default: 8
-   */
-  radius?: number;
   
   /**
    * Show loading state
@@ -70,27 +64,16 @@ export interface ButtonProps extends Omit<PressableProps, 'style'> {
   testID?: string;
 }
 
-const variantStyles: Record<ButtonVariant, string> = {
-  primary: 'bg-primary active:bg-primary-dark',
-  secondary: 'bg-secondary active:bg-secondary-dark',
-  ghost: 'bg-transparent active:bg-gray-100',
-  outline: 'bg-transparent border border-gray-300 active:bg-gray-50',
-  danger: 'bg-error active:bg-red-600',
-};
-
-const variantTextStyles: Record<ButtonVariant, string> = {
-  primary: 'text-white',
-  secondary: 'text-white',
-  ghost: 'text-primary',
-  outline: 'text-text-primary',
-  danger: 'text-white',
+const sizeMap: Record<ButtonSize, { height: number; paddingHorizontal: number; fontSize: number }> = {
+  small: { height: 40, paddingHorizontal: 12, fontSize: 14 },
+  medium: { height: 48, paddingHorizontal: 16, fontSize: 16 },
+  large: { height: 56, paddingHorizontal: 20, fontSize: 18 },
 };
 
 export const Button: React.FC<ButtonProps> = ({
-  variant = 'primary',
+  variant = 'solid',
+  size = 'medium',
   children,
-  height = 48,
-  radius = 8,
   loading = false,
   disabled = false,
   fullWidth = false,
@@ -100,8 +83,21 @@ export const Button: React.FC<ButtonProps> = ({
   ...props
 }) => {
   const isDisabled = disabled || loading;
-  const scaledHeight = ms(height);
-  const scaledRadius = ms(radius);
+  const sizeConfig = sizeMap[size];
+  const scaledHeight = ms(sizeConfig.height);
+  const scaledPaddingHorizontal = ms(sizeConfig.paddingHorizontal);
+  const scaledRadius = ms(2); // Border radius from Figma: 2px
+  const scaledFontSize = ms(sizeConfig.fontSize);
+
+  // Solid variant: Disabled uses #FFC1CD, enabled uses primary color
+  // Ghost variant: Transparent background with text color
+  const backgroundColor = variant === 'solid' 
+    ? (isDisabled ? '#FFC1CD' : lightTheme.interactive)
+    : 'transparent';
+  
+  const textColor = variant === 'solid'
+    ? (isDisabled ? '#FFFFFF' : '#FFFFFF')
+    : lightTheme.interactiveActive; // #FF375E for ghost variant
 
   return (
     <Pressable
@@ -109,8 +105,6 @@ export const Button: React.FC<ButtonProps> = ({
       disabled={isDisabled}
       testID={testID}
       className={`
-        ${variantStyles[variant]}
-        ${isDisabled ? 'opacity-50' : ''}
         ${fullWidth ? 'w-full' : ''}
         items-center justify-center
         ${className || ''}
@@ -119,20 +113,29 @@ export const Button: React.FC<ButtonProps> = ({
         {
           height: scaledHeight,
           borderRadius: scaledRadius,
+          paddingHorizontal: scaledPaddingHorizontal,
+          backgroundColor,
+          opacity: variant === 'ghost' && isDisabled ? 0.5 : 1,
         },
       ]}
       {...props}
     >
       {loading ? (
         <ActivityIndicator
-          color={variant === 'ghost' || variant === 'outline' ? '#0b69ff' : '#ffffff'}
+          color={textColor}
           size="small"
         />
       ) : (
         <Text
-          className={variantTextStyles[variant]}
-          size={16}
-          style={{ fontWeight: '600' }}
+          style={{
+            fontSize: scaledFontSize,
+            lineHeight: scaledFontSize * 1.25, // 1.25em line height
+            fontWeight: '400',
+            fontFamily: typography.button.fontFamily,
+            color: textColor,
+            textTransform: 'lowercase',
+            textAlign: 'center',
+          }}
         >
           {children}
         </Text>

@@ -2,6 +2,7 @@
  * FormField Component
  * 
  * React Hook Form Controller wrapper that renders Input and shows validation errors.
+ * Supports all Input customization props (styles, colors, typography).
  * 
  * @example
  * ```tsx
@@ -10,6 +11,22 @@
  *   name="email"
  *   label="Email"
  *   placeholder="Enter your email"
+ * />
+ * 
+ * // With custom styling
+ * <FormField
+ *   control={control}
+ *   name="phoneNumber"
+ *   label="phone number"
+ *   placeholder="eg. 33011234"
+ *   colors={{
+ *     labelColor: '#687078',
+ *     placeholderColor: '#9CA3AF',
+ *     textColor: '#090D0F',
+ *   }}
+ *   styles={{
+ *     inputContainer: { borderWidth: 2 },
+ *   }}
  * />
  * ```
  */

@@ -1,14 +1,16 @@
 {
   "auth": {
     "login": {
-      "title": "Welcome Back",
+      "title": "login to your account",
       "subtitle": "Sign in to continue",
+      "phoneNumber": "phone number",
       "email": "Email",
-      "password": "Password",
-      "forgotPassword": "Forgot Password?",
-      "loginButton": "Sign In",
+      "password": "password",
+      "forgotPassword": "Forgot your password?",
+      "loginButton": "Log in",
       "noAccount": "Don't have an account?",
       "signUp": "Sign Up",
+      "phoneRequired": "Phone number is required",
       "emailRequired": "Email is required",
       "emailInvalid": "Please enter a valid email",
       "passwordRequired": "Password is required",

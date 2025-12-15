@@ -77,8 +77,8 @@ const AuthStack = () => {
   return (
     <Stack.Navigator
       screenOptions={{
-        headerShown: false,
-        gestureEnabled: false, // Disable gestures
+        headerShown: false, // Custom headers in screens
+        gestureEnabled: true, // Enable gestures for back button
       }}
     >
       <Stack.Screen name="Login" component={LoginScreen} />
