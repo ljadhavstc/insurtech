@@ -12,7 +12,6 @@
 
 import React, { createContext, useContext, useState, useCallback } from 'react';
 import { View } from 'react-native';
-import { ms } from '@/utils/scale';
 import { Box } from './primitives/Box';
 import { Text } from './primitives/Text';
 
@@ -73,7 +72,7 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   );
 };
 
-const ToastItem: React.FC<{ toast: Toast; onHide: (id: string) => void }> = ({ toast, onHide }) => {
+const ToastItem: React.FC<{ toast: Toast; onHide: (id: string) => void }> = ({ toast }) => {
   const typeStyles: Record<ToastType, { bg: string; text: string }> = {
     success: { bg: 'bg-success', text: 'text-white' },
     error: { bg: 'bg-error', text: 'text-white' },

@@ -46,7 +46,7 @@ export const LoginScreen = () => {
     control,
     handleSubmit,
     watch,
-    formState: { errors, isValid, touchedFields },
+    formState: { errors },
   } = useForm<LoginFormData>({
     defaultValues: {
       phoneNumber: '',
@@ -99,6 +99,7 @@ export const LoginScreen = () => {
       >
         <ScrollView
           contentContainerStyle={{ flexGrow: 1 }}
+          className="flex-grow"
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >

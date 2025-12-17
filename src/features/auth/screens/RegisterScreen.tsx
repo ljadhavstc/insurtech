@@ -5,7 +5,7 @@
  */
 
 import React, { useState } from 'react';
-import { View, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
+import { ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { useNavigation } from '@react-navigation/native';
@@ -87,6 +87,7 @@ export const RegisterScreen = () => {
     >
       <ScrollView
         contentContainerStyle={{ flexGrow: 1 }}
+        className="flex-grow"
         keyboardShouldPersistTaps="handled"
       >
         <Box className="flex-1 justify-center px-6" p={24}>

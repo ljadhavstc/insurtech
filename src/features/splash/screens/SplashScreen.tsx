@@ -104,8 +104,7 @@ export const SplashScreen = () => {
           </Text>
           <Text 
             variant="overline"
-            className="text-white text-center"
-            style={{ fontWeight: '500' }}
+            className="text-white text-center font-medium"
           >
             V 0.01
           </Text>

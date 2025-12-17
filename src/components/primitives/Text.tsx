@@ -99,16 +99,16 @@ export const Text: React.FC<TextProps> = ({
     const config = getTypographyConfig();
     if (!config) return {};
     
-    const style: any = {
+    const typographyStyle: any = {
       fontSize: fs(config.fontSize),
     };
     
     if (config.lineHeight) {
-      style.lineHeight = fs(config.lineHeight);
+      typographyStyle.lineHeight = fs(config.lineHeight);
     }
     
     if (config.fontWeight) {
-      style.fontWeight = config.fontWeight;
+      typographyStyle.fontWeight = config.fontWeight;
     }
     
     if (config.fontFamily) {
@@ -116,14 +116,14 @@ export const Text: React.FC<TextProps> = ({
       const fontName = config.fontFamily === 'STC Forward' 
         ? (Platform.OS === 'ios' ? 'STC Forward' : 'STCForward')
         : config.fontFamily;
-      style.fontFamily = fontName;
+      typographyStyle.fontFamily = fontName;
     }
     
     if ('letterSpacing' in config && config.letterSpacing !== undefined) {
-      style.letterSpacing = config.letterSpacing;
+      typographyStyle.letterSpacing = config.letterSpacing;
     }
     
-    return style;
+    return typographyStyle;
   };
 
   const fontSize = getFontSize();
@@ -138,7 +138,7 @@ export const Text: React.FC<TextProps> = ({
   if (variant && Object.keys(typographyStyle).length > 0) {
     // If style prop has fontWeight, remove it from typography style to allow override
     if (hasFontWeightOverride && typographyStyle.fontWeight) {
-      const { fontWeight: _, ...restTypographyStyle } = typographyStyle;
+      const { fontWeight, ...restTypographyStyle } = typographyStyle;
       styleArray.push(restTypographyStyle);
     } else {
       styleArray.push(typographyStyle);

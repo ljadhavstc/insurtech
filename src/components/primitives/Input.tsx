@@ -233,8 +233,6 @@ export const Input: React.FC<InputProps> = ({
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [internalError, setInternalError] = useState<string | undefined>();
   
-  const scaledRadius = ms(2); // Border radius from Figma: 2px
-  
   // Determine keyboard type and secure text entry based on variant
   const keyboardType = useMemo(() => {
     switch (variant) {
@@ -378,12 +376,11 @@ export const Input: React.FC<InputProps> = ({
             autoCapitalize={variant === 'email' ? 'none' : 'sentences'}
             autoCorrect={variant !== 'email' && variant !== 'password'}
             onChangeText={handleChangeText}
-            className="p-0 m-0 text-left min-h-[20px]"
+            className="p-0 m-0 text-left min-h-[20px] font-normal"
             style={[
               {
                 fontSize: ms(inputSize),
                 lineHeight: ms(inputLineHeight),
-                fontWeight: '400',
                 fontFamily: typography.body.fontFamily,
                 color: textColor,
               },

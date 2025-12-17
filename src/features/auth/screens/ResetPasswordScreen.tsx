@@ -81,7 +81,7 @@ export const ResetPasswordScreen = () => {
     if (!/[0-9]/.test(password)) {
       return t('auth.resetPassword.passwordNumber');
     }
-    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
+    if (!/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password)) {
       return t('auth.resetPassword.passwordSpecialChar');
     }
     if (mobileNumber && password.includes(mobileNumber)) {
@@ -101,9 +101,9 @@ export const ResetPasswordScreen = () => {
     const hasNewPassword = newPassword && newPassword.length > 0;
     const hasConfirmPassword = confirmPassword && confirmPassword.length > 0;
     const noErrors = !errors.newPassword && !errors.confirmPassword;
-    const passwordsMatch = newPassword === confirmPassword;
-    return hasNewPassword && hasConfirmPassword && noErrors && passwordsMatch && !validatePassword(newPassword);
-  }, [newPassword, confirmPassword, errors]);
+    const passwordsMatchValue = newPassword === confirmPassword;
+    return hasNewPassword && hasConfirmPassword && noErrors && passwordsMatchValue && !validatePassword(newPassword);
+  }, [newPassword, confirmPassword, errors, validatePassword]);
 
   const onSubmit = async (data: ResetPasswordFormData) => {
     try {
@@ -137,6 +137,7 @@ export const ResetPasswordScreen = () => {
       >
         <ScrollView
           contentContainerStyle={{ flexGrow: 1 }}
+          className="flex-grow"
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >

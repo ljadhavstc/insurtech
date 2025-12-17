@@ -69,7 +69,7 @@ const validationRules: ValidationRule[] = [
   {
     id: 'specialChar',
     label: 'contains at least one special character',
-    validate: (pwd) => /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(pwd),
+    validate: (pwd) => /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(pwd),
   },
 ];
 
@@ -82,12 +82,6 @@ export const PasswordValidationRules: React.FC<PasswordValidationRulesProps> = (
 }) => {
   const hasPassword = password.length > 0;
   const shouldShow = showWhenEmpty || hasPassword;
-
-  // Check if password contains mobile number
-  const containsMobileNumber = useMemo(() => {
-    if (!mobileNumber || !hasPassword) return false;
-    return password.includes(mobileNumber);
-  }, [password, mobileNumber, hasPassword]);
 
   // Validate all rules
   const ruleResults = useMemo(() => {
@@ -102,7 +96,6 @@ export const PasswordValidationRules: React.FC<PasswordValidationRulesProps> = (
   return (
     <View className="gap-xs mt-xs">
       {ruleResults.map((rule) => {
-        const isActive = hasPassword;
         const isValid = rule.isValid;
         
         // Show informative state when password is empty

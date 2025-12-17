@@ -3,8 +3,7 @@ const {
   colors, 
   baseColors, 
   brandColors, 
-  lightTheme, 
-  darkTheme,
+  lightTheme,
   spacing, 
   typography,
   textStyles,
@@ -12,14 +11,6 @@ const {
   borderRadius, 
   fontFamily 
 } = require('./src/styles/tokens');
-
-// Base design width: 390px (standard phone width)
-// Convert px to rem for responsive design (1rem = 16px base, but we use 390/16 = 24.375 as base)
-const BASE_WIDTH = 390;
-const BASE_REM = 16; // 1rem = 16px
-
-// Helper to convert px to rem-based responsive units
-const pxToRem = (px) => `${(px / BASE_REM).toFixed(4)}rem`;
 
 module.exports = {
   content: [

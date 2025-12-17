@@ -20,10 +20,6 @@ const rl = readline.createInterface({
   output: process.stdout,
 });
 
-function question(query) {
-  return new Promise((resolve) => rl.question(query, resolve));
-}
-
 async function createIcon() {
   const iconName = process.argv[2];
   
@@ -102,22 +98,22 @@ export const ${pascalName}Icon: React.FC<${pascalName}IconProps> = ({
       fill="none"
       {...props}
     >
-${paths.map(path => {
-  if (path.fill && path.fill !== 'none') {
-    return `      <Path
-        d="${path.d}"
+${paths.map(pathItem => {
+    if (pathItem.fill && pathItem.fill !== 'none') {
+      return `      <Path
+        d="${pathItem.d}"
         fill={color}
       />`;
-  } else {
-    return `      <Path
-        d="${path.d}"
+    } else {
+      return `      <Path
+        d="${pathItem.d}"
         stroke={color}
-        strokeWidth={path.strokeWidth}
+        strokeWidth={pathItem.strokeWidth}
         strokeLinecap="round"
         strokeLinejoin="round"
       />`;
-  }
-}).join('\n')}
+    }
+  }).join('\n')}
     </Svg>
   );
 };
@@ -175,7 +171,6 @@ export default ${pascalName}Icon;
   // Add to IconName type
   const typeMatch = indexContent.match(/export type IconName = \s*\| '([^']+)'/);
   if (typeMatch) {
-    const typeLine = `export type IconName = \n  | '${kebabName}'`;
     if (!indexContent.includes(`'${kebabName}'`)) {
       indexContent = indexContent.replace(
         /export type IconName =[^;]+;/,

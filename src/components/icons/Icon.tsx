@@ -14,7 +14,6 @@
 import React from 'react';
 import { ViewStyle, StyleProp } from 'react-native';
 import { View } from 'react-native';
-import Svg, { SvgProps } from 'react-native-svg';
 import { ms } from '@/utils/scale';
 
 export interface IconProps {

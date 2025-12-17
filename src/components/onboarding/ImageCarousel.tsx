@@ -55,12 +55,11 @@ export const ImageCarousel: React.FC<ImageCarouselProps> = ({ slides }) => {
         {slides.map((slide, index) => (
           <View
             key={slide.id}
-            className="bg-theme-background-card border border-theme-border rounded-lg justify-center items-center"
+            className={`bg-theme-background-card border border-theme-border rounded-lg justify-center items-center ${index < slides.length - 1 ? 'mr-6' : ''}`}
             style={{
               width: CARD_WIDTH,
               height: s(350),
               padding: CARD_PADDING,
-              marginRight: index < slides.length - 1 ? s(24) : 0,
             }}
           >
             {/* Image Container */}

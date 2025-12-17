@@ -92,6 +92,7 @@ export const ForgotPasswordScreen = () => {
       >
         <ScrollView
           contentContainerStyle={{ flexGrow: 1 }}
+          className="flex-grow"
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >

@@ -59,11 +59,11 @@ export function FormField<T extends FieldValues>({
   ...inputProps
 }: FormFieldProps<T>) {
   // Auto-generate rules based on variant if not provided
+  const variant = (inputProps as any).variant;
   const finalRules = useMemo(() => {
     if (rules) return rules;
     
     // Auto-generate rules based on variant
-    const variant = (inputProps as any).variant;
     if (!variant) return undefined;
     
     switch (variant) {
@@ -102,7 +102,7 @@ export function FormField<T extends FieldValues>({
       default:
         return undefined;
     }
-  }, [rules, (inputProps as any).variant]);
+  }, [rules, variant]);
   
   return (
     <Controller
