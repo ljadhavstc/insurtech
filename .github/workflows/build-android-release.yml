@@ -56,6 +56,31 @@ jobs:
     - name: Install dependencies
       run: npm ci
     
+    - name: Create assets directory
+      run: |
+        mkdir -p android/app/src/main/assets
+    
+    - name: Bundle JavaScript
+      run: |
+        npx react-native bundle \
+          --platform android \
+          --dev false \
+          --entry-file index.js \
+          --bundle-output android/app/src/main/assets/index.android.bundle \
+          --assets-dest android/app/src/main/res \
+          --sourcemap-output android/app/src/main/assets/index.android.bundle.map \
+          --minify true
+    
+    - name: Verify bundle created
+      run: |
+        if [ -f "android/app/src/main/assets/index.android.bundle" ]; then
+          echo "✅ JS bundle created successfully"
+          ls -lh android/app/src/main/assets/
+        else
+          echo "❌ JS bundle not found!"
+          exit 1
+        fi
+    
     - name: Decode Keystore
       if: github.event.inputs.build_type == 'release'
       env:
@@ -129,8 +154,11 @@ jobs:
         echo "- **Build Type:** ${{ github.event.inputs.build_type }}" >> $GITHUB_STEP_SUMMARY
         echo "- **APK Size:** ${{ steps.apk_info.outputs.apk_size }}" >> $GITHUB_STEP_SUMMARY
         echo "- **APK Path:** ${{ steps.apk_info.outputs.apk_path }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **JS Bundle:** Included (runs without Metro bundler)" >> $GITHUB_STEP_SUMMARY
         echo "- **Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
         echo "- **Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "✅ Build completed successfully! Download the APK from the Artifacts section." >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "📱 **Note:** This APK includes the JavaScript bundle and can run without Metro bundler." >> $GITHUB_STEP_SUMMARY
 

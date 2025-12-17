@@ -50,6 +50,27 @@ jobs:
         cd ios
         pod install
     
+    - name: Bundle JavaScript
+      run: |
+        npx react-native bundle \
+          --platform ios \
+          --dev false \
+          --entry-file index.js \
+          --bundle-output ios/main.jsbundle \
+          --assets-dest ios/ \
+          --sourcemap-output ios/main.jsbundle.map \
+          --minify true
+    
+    - name: Verify bundle created
+      run: |
+        if [ -f "ios/main.jsbundle" ]; then
+          echo "✅ JS bundle created successfully"
+          ls -lh ios/main.jsbundle
+        else
+          echo "❌ JS bundle not found!"
+          exit 1
+        fi
+    
     - name: Setup Xcode
       uses: maxim-lobanov/setup-xcode@v1
       with:
@@ -170,8 +191,11 @@ jobs:
         echo "- **Distribution Method:** ${{ github.event.inputs.distribution_method }}" >> $GITHUB_STEP_SUMMARY
         echo "- **IPA Size:** ${{ steps.ipa_info.outputs.ipa_size }}" >> $GITHUB_STEP_SUMMARY
         echo "- **IPA Name:** ${{ steps.ipa_info.outputs.ipa_name }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **JS Bundle:** Included (runs without Metro bundler)" >> $GITHUB_STEP_SUMMARY
         echo "- **Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
         echo "- **Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "✅ Build completed successfully! Download the IPA from the Artifacts section." >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "📱 **Note:** This IPA includes the JavaScript bundle and can run without Metro bundler." >> $GITHUB_STEP_SUMMARY
 
