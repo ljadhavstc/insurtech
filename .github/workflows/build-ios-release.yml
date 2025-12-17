@@ -112,27 +112,124 @@ jobs:
         sed -i '' "s/YOUR_PROVISIONING_PROFILE_NAME/${{ secrets.IOS_PROVISIONING_PROFILE_NAME || 'YOUR_PROVISIONING_PROFILE_NAME' }}/g" ExportOptions.plist
         sed -i '' "s/ad-hoc/${{ github.event.inputs.distribution_method }}/g" ExportOptions.plist
     
+    - name: Configure Code Signing
+      run: |
+        cd ios
+        if [ -z "${{ secrets.IOS_TEAM_ID }}" ]; then
+          echo "⚠️  Warning: IOS_TEAM_ID secret not set"
+          echo "Building without code signing - IPA will NOT be installable on devices"
+          echo "This build is for testing/CI purposes only"
+        else
+          echo "✅ Using Team ID: ${{ secrets.IOS_TEAM_ID }}"
+        fi
+    
+    - name: Update Xcode Project with Team ID
+      run: |
+        cd ios
+        if [ -n "${{ secrets.IOS_TEAM_ID }}" ]; then
+          # Add DEVELOPMENT_TEAM to Release target configuration (13B07F951A680F5B00A75B9A)
+          # Check if DEVELOPMENT_TEAM already exists in the Release target config
+          if grep -A 20 "13B07F951A680F5B00A75B9A /\* Release \*/" insurtech.xcodeproj/project.pbxproj | grep -q "DEVELOPMENT_TEAM"; then
+            # Update existing DEVELOPMENT_TEAM in Release target
+            sed -i '' "/13B07F951A680F5B00A75B9A \/\* Release \*\/ = {/,/};/ {
+              s/DEVELOPMENT_TEAM = [^;]*;/DEVELOPMENT_TEAM = ${{ secrets.IOS_TEAM_ID }};/g
+            }" insurtech.xcodeproj/project.pbxproj
+            echo "✅ Updated DEVELOPMENT_TEAM in Release target configuration"
+          else
+            # Add DEVELOPMENT_TEAM after IPHONEOS_DEPLOYMENT_TARGET in Release target config
+            sed -i '' "/13B07F951A680F5B00A75B9A \/\* Release \*\/ = {/,/};/ {
+              /IPHONEOS_DEPLOYMENT_TARGET = 15.1;/a\
+				DEVELOPMENT_TEAM = ${{ secrets.IOS_TEAM_ID }};
+            }" insurtech.xcodeproj/project.pbxproj
+            echo "✅ Added DEVELOPMENT_TEAM to Release target configuration"
+          fi
+          
+          # Also add CODE_SIGN_STYLE = Manual for Release target if not present
+          if ! grep -A 20 "13B07F951A680F5B00A75B9A /\* Release \*/" insurtech.xcodeproj/project.pbxproj | grep -q "CODE_SIGN_STYLE"; then
+            sed -i '' "/13B07F951A680F5B00A75B9A \/\* Release \*\/ = {/,/};/ {
+              /DEVELOPMENT_TEAM = ${{ secrets.IOS_TEAM_ID }};/a\
+				CODE_SIGN_STYLE = Manual;
+            }" insurtech.xcodeproj/project.pbxproj
+            echo "✅ Added CODE_SIGN_STYLE = Manual to Release target configuration"
+          fi
+        else
+          # Disable code signing if no team ID
+          echo "⚠️  Disabling code signing in project file"
+          # Remove DEVELOPMENT_TEAM if it exists
+          sed -i '' "/13B07F951A680F5B00A75B9A \/\* Release \*\/ = {/,/};/ {
+            /DEVELOPMENT_TEAM = /d
+            /CODE_SIGN_STYLE = /d
+          }" insurtech.xcodeproj/project.pbxproj || true
+        fi
+    
     - name: Build Archive
       env:
         DEVELOPER_DIR: /Applications/Xcode.app/Contents/Developer
       run: |
         cd ios
-        xcodebuild -workspace insurtech.xcworkspace \
-          -scheme insurtech \
-          -configuration Release \
-          -archivePath build/insurtech.xcarchive \
-          archive \
-          CODE_SIGN_IDENTITY="${{ secrets.IOS_CODE_SIGN_IDENTITY || 'iPhone Developer' }}" \
-          DEVELOPMENT_TEAM="${{ secrets.IOS_TEAM_ID }}"
+        if [ -n "${{ secrets.IOS_TEAM_ID }}" ]; then
+          # Build with code signing
+          echo "🔐 Building with code signing..."
+          xcodebuild -workspace insurtech.xcworkspace \
+            -scheme insurtech \
+            -configuration Release \
+            -archivePath build/insurtech.xcarchive \
+            archive \
+            CODE_SIGN_IDENTITY="${{ secrets.IOS_CODE_SIGN_IDENTITY || 'iPhone Developer' }}" \
+            DEVELOPMENT_TEAM="${{ secrets.IOS_TEAM_ID }}" \
+            CODE_SIGNING_REQUIRED=YES \
+            CODE_SIGNING_ALLOWED=YES \
+            PROVISIONING_PROFILE_SPECIFIER="${{ secrets.IOS_PROVISIONING_PROFILE_NAME || '' }}"
+        else
+          # Build without code signing (unsigned - not installable on devices)
+          echo "⚠️  Building WITHOUT code signing (unsigned build)..."
+          xcodebuild -workspace insurtech.xcworkspace \
+            -scheme insurtech \
+            -configuration Release \
+            -archivePath build/insurtech.xcarchive \
+            archive \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            DEVELOPMENT_TEAM=""
+        fi
     
     - name: Export IPA
       run: |
         cd ios
-        xcodebuild -exportArchive \
-          -archivePath build/insurtech.xcarchive \
-          -exportPath build/ipa \
-          -exportOptionsPlist ExportOptions.plist \
-          -allowProvisioningUpdates
+        if [ -n "${{ secrets.IOS_TEAM_ID }}" ]; then
+          # Export with signing
+          xcodebuild -exportArchive \
+            -archivePath build/insurtech.xcarchive \
+            -exportPath build/ipa \
+            -exportOptionsPlist ExportOptions.plist \
+            -allowProvisioningUpdates
+        else
+          # Export without signing (for unsigned builds)
+          echo "⚠️  Exporting unsigned IPA (not installable on devices)..."
+          # Create a minimal export options plist for unsigned export
+          cat > ExportOptionsUnsigned.plist << EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>method</key>
+    <string>development</string>
+    <key>signingStyle</key>
+    <string>manual</string>
+    <key>stripSwiftSymbols</key>
+    <true/>
+</dict>
+</plist>
+EOF
+          xcodebuild -exportArchive \
+            -archivePath build/insurtech.xcarchive \
+            -exportPath build/ipa \
+            -exportOptionsPlist ExportOptionsUnsigned.plist \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO || echo "⚠️  Export may have failed due to unsigned build"
+        fi
     
     - name: List exported files
       run: |
@@ -192,10 +289,19 @@ jobs:
         echo "- **IPA Size:** ${{ steps.ipa_info.outputs.ipa_size }}" >> $GITHUB_STEP_SUMMARY
         echo "- **IPA Name:** ${{ steps.ipa_info.outputs.ipa_name }}" >> $GITHUB_STEP_SUMMARY
         echo "- **JS Bundle:** Included (runs without Metro bundler)" >> $GITHUB_STEP_SUMMARY
+        if [ -z "${{ secrets.IOS_TEAM_ID }}" ]; then
+          echo "- **Code Signing:** ⚠️  UNSIGNED (not installable on devices)" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "- **Code Signing:** ✅ Signed with Team ID" >> $GITHUB_STEP_SUMMARY
+        fi
         echo "- **Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
         echo "- **Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "✅ Build completed successfully! Download the IPA from the Artifacts section." >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "📱 **Note:** This IPA includes the JavaScript bundle and can run without Metro bundler." >> $GITHUB_STEP_SUMMARY
+        if [ -z "${{ secrets.IOS_TEAM_ID }}" ]; then
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "⚠️  **Warning:** This IPA is UNSIGNED and cannot be installed on iOS devices. Set IOS_TEAM_ID secret to create a signed, installable IPA." >> $GITHUB_STEP_SUMMARY
+        fi
 
