@@ -124,42 +124,85 @@ jobs:
         fi
     
     - name: Update Xcode Project with Team ID
+      env:
+        IOS_TEAM_ID: ${{ secrets.IOS_TEAM_ID }}
       run: |
         cd ios
-        if [ -n "${{ secrets.IOS_TEAM_ID }}" ]; then
+        if [ -n "$IOS_TEAM_ID" ]; then
           # Add DEVELOPMENT_TEAM to Release target configuration (13B07F951A680F5B00A75B9A)
           # Check if DEVELOPMENT_TEAM already exists in the Release target config
           if grep -A 20 "13B07F951A680F5B00A75B9A /\* Release \*/" insurtech.xcodeproj/project.pbxproj | grep -q "DEVELOPMENT_TEAM"; then
             # Update existing DEVELOPMENT_TEAM in Release target
-            sed -i '' "/13B07F951A680F5B00A75B9A \/\* Release \*\/ = {/,/};/ {
-              s/DEVELOPMENT_TEAM = [^;]*;/DEVELOPMENT_TEAM = ${{ secrets.IOS_TEAM_ID }};/g
-            }" insurtech.xcodeproj/project.pbxproj
+            sed -i '' "s/DEVELOPMENT_TEAM = [^;]*;/DEVELOPMENT_TEAM = $IOS_TEAM_ID;/g" insurtech.xcodeproj/project.pbxproj
             echo "✅ Updated DEVELOPMENT_TEAM in Release target configuration"
           else
             # Add DEVELOPMENT_TEAM after IPHONEOS_DEPLOYMENT_TARGET in Release target config
-            sed -i '' "/13B07F951A680F5B00A75B9A \/\* Release \*\/ = {/,/};/ {
-              /IPHONEOS_DEPLOYMENT_TARGET = 15.1;/a\
-				DEVELOPMENT_TEAM = ${{ secrets.IOS_TEAM_ID }};
-            }" insurtech.xcodeproj/project.pbxproj
-            echo "✅ Added DEVELOPMENT_TEAM to Release target configuration"
+            python3 << EOF
+import re
+import os
+
+team_id = os.environ.get('IOS_TEAM_ID', '')
+project_file = "insurtech.xcodeproj/project.pbxproj"
+
+with open(project_file, 'r') as f:
+    content = f.read()
+
+# Find Release target configuration and add DEVELOPMENT_TEAM
+pattern = r'(13B07F951A680F5B00A75B9A /\* Release \*/ = \{[^}]*buildSettings = \{)([^}]*IPHONEOS_DEPLOYMENT_TARGET = 15\.1;)([^}]*)(\})'
+match = re.search(pattern, content, re.DOTALL)
+
+if match:
+    build_settings = match.group(3)
+    if 'DEVELOPMENT_TEAM' not in build_settings:
+        new_line = f'\t\t\t\tDEVELOPMENT_TEAM = {team_id};\n'
+        content = content[:match.end(2)] + new_line + build_settings + content[match.end(3):]
+        with open(project_file, 'w') as f:
+            f.write(content)
+        print("✅ Added DEVELOPMENT_TEAM to Release target configuration")
+    else:
+        print("✅ DEVELOPMENT_TEAM already exists")
+else:
+    print("⚠️  Could not find Release target configuration")
+EOF
           fi
           
           # Also add CODE_SIGN_STYLE = Manual for Release target if not present
           if ! grep -A 20 "13B07F951A680F5B00A75B9A /\* Release \*/" insurtech.xcodeproj/project.pbxproj | grep -q "CODE_SIGN_STYLE"; then
-            sed -i '' "/13B07F951A680F5B00A75B9A \/\* Release \*\/ = {/,/};/ {
-              /DEVELOPMENT_TEAM = ${{ secrets.IOS_TEAM_ID }};/a\
-				CODE_SIGN_STYLE = Manual;
-            }" insurtech.xcodeproj/project.pbxproj
-            echo "✅ Added CODE_SIGN_STYLE = Manual to Release target configuration"
+            python3 << EOF
+import re
+import os
+
+team_id = os.environ.get('IOS_TEAM_ID', '')
+project_file = "insurtech.xcodeproj/project.pbxproj"
+
+with open(project_file, 'r') as f:
+    content = f.read()
+
+# Find Release target configuration and add CODE_SIGN_STYLE after DEVELOPMENT_TEAM
+escaped_team_id = re.escape(team_id)
+pattern = r'(13B07F951A680F5B00A75B9A /\* Release \*/ = \{[^}]*buildSettings = \{)([^}]*DEVELOPMENT_TEAM = ' + escaped_team_id + r';)([^}]*)(\})'
+match = re.search(pattern, content, re.DOTALL)
+
+if match:
+    build_settings = match.group(3)
+    if 'CODE_SIGN_STYLE' not in build_settings:
+        new_line = '\t\t\t\tCODE_SIGN_STYLE = Manual;\n'
+        content = content[:match.end(2)] + new_line + build_settings + content[match.end(3):]
+        with open(project_file, 'w') as f:
+            f.write(content)
+        print("✅ Added CODE_SIGN_STYLE = Manual to Release target configuration")
+    else:
+        print("✅ CODE_SIGN_STYLE already exists")
+else:
+    print("⚠️  Could not find Release target configuration")
+EOF
           fi
         else
           # Disable code signing if no team ID
           echo "⚠️  Disabling code signing in project file"
-          # Remove DEVELOPMENT_TEAM if it exists
-          sed -i '' "/13B07F951A680F5B00A75B9A \/\* Release \*\/ = {/,/};/ {
-            /DEVELOPMENT_TEAM = /d
-            /CODE_SIGN_STYLE = /d
-          }" insurtech.xcodeproj/project.pbxproj || true
+          # Remove DEVELOPMENT_TEAM and CODE_SIGN_STYLE if they exist
+          sed -i '' '/DEVELOPMENT_TEAM = /d' insurtech.xcodeproj/project.pbxproj || true
+          sed -i '' '/CODE_SIGN_STYLE = /d' insurtech.xcodeproj/project.pbxproj || true
         fi
     
     - name: Build Archive
