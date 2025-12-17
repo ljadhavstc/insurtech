@@ -149,4 +149,9 @@ jobs:
           CODE_SIGN_IDENTITY="" \
           CODE_SIGNING_REQUIRED=NO \
           CODE_SIGNING_ALLOWED=NO
+    
+    - name: Note about IPA
+      run: |
+        echo "ℹ️  This CI build creates a simulator build, not an IPA file."
+        echo "To create an IPA file, use the 'Build iOS Release' workflow instead."
 

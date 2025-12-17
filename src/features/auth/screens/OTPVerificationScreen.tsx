@@ -267,7 +267,7 @@ export const OTPVerificationScreen = () => {
           <View className="flex-1 bg-theme-background px-md pt-md">
             {/* Card Header */}
             <View className="pb-xs">
-              <Text variant="h1" className="text-theme-text-primary">
+              <Text variant="screenTitle" className="text-theme-text-primary">
                 {t('auth.otpVerification.title')}
               </Text>
             </View>

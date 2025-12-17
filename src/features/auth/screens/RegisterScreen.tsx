@@ -91,7 +91,7 @@ export const RegisterScreen = () => {
         keyboardShouldPersistTaps="handled"
       >
         <Box className="flex-1 justify-center px-6" p={24}>
-          <Text variant="h1" className="text-theme-text-primary mb-2">
+          <Text variant="screenTitle" className="text-theme-text-primary mb-2">
             {t('auth.register.title')}
           </Text>
           <Text variant="body" className="text-theme-text-secondary mb-8">

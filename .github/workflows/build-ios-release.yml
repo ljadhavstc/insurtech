@@ -113,17 +113,42 @@ jobs:
           -exportOptionsPlist ExportOptions.plist \
           -allowProvisioningUpdates
     
+    - name: List exported files
+      run: |
+        echo "📁 Contents of ios/build/ipa:"
+        ls -la ios/build/ipa/ || echo "Directory not found"
+        echo ""
+        echo "📁 Searching for IPA files:"
+        find ios/build -name "*.ipa" -type f || echo "No IPA files found"
+    
     - name: Get IPA Info
       id: ipa_info
       run: |
-        IPA_PATH=$(find ios/build/ipa -name "*.ipa" | head -n 1)
+        # Try multiple possible locations
+        IPA_PATH=$(find ios/build/ipa -name "*.ipa" -type f 2>/dev/null | head -n 1)
+        
+        if [ -z "$IPA_PATH" ]; then
+          # Try alternative location
+          IPA_PATH=$(find ios/build -name "*.ipa" -type f 2>/dev/null | head -n 1)
+        fi
+        
+        if [ -z "$IPA_PATH" ]; then
+          echo "❌ Error: IPA file not found!"
+          echo "Searched in:"
+          echo "  - ios/build/ipa/"
+          echo "  - ios/build/"
+          ls -la ios/build/ 2>/dev/null || echo "Build directory not found"
+          exit 1
+        fi
+        
         IPA_SIZE=$(du -h "$IPA_PATH" | cut -f1)
         IPA_NAME=$(basename "$IPA_PATH")
         echo "ipa_path=$IPA_PATH" >> $GITHUB_OUTPUT
         echo "ipa_size=$IPA_SIZE" >> $GITHUB_OUTPUT
         echo "ipa_name=$IPA_NAME" >> $GITHUB_OUTPUT
+        echo "✅ Found IPA: $IPA_PATH"
         echo "📦 IPA Size: $IPA_SIZE"
-        echo "📁 IPA Path: $IPA_PATH"
+        echo "📁 IPA Name: $IPA_NAME"
     
     - name: Upload IPA Artifact
       uses: actions/upload-artifact@v4
@@ -131,6 +156,7 @@ jobs:
         name: ios-${{ github.event.inputs.distribution_method }}-ipa
         path: ${{ steps.ipa_info.outputs.ipa_path }}
         retention-days: 30
+        if-no-files-found: error
     
     - name: Cleanup Keychain
       if: always()

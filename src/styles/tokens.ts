@@ -6,6 +6,8 @@
  * Run `npm run generate-tokens` to regenerate from Figma JSON.
  */
 
+import { Platform } from "react-native";
+
 // Brand Colors (reusable across the app)
 export const brandColors = {
   purple: '#4F008C', // Primary brand purple
@@ -241,6 +243,12 @@ export const typography = {
     fontSize: 32,
     lineHeight: 40,
     fontWeight: '700' as const,
+    fontFamily: fontFamily.primary,
+  },
+  screenTitle: {
+    fontSize: 28,
+    lineHeight: 32,
+    fontWeight: '400' as const,
     fontFamily: fontFamily.primary,
   },
   h2: {
