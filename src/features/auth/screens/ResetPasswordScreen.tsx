@@ -2,24 +2,30 @@
  * Reset Password Screen
  * 
  * Screen for resetting password after OTP verification.
+ * Includes password validation rules and mobile number warning.
+ * Matches Figma design structure with header, content card, and form fields.
  */
 
-import React, { useState } from 'react';
-import { View, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
-import { useForm } from 'react-hook-form';
+import React, { useState, useMemo } from 'react';
+import { View, ScrollView, KeyboardAvoidingView, Platform, StatusBar, TouchableOpacity } from 'react-native';
+import { useForm, Controller } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import api from '@/services/api';
 import { useToast } from '@/components/Toast';
-import { Box } from '@/components/primitives/Box';
 import { Text } from '@/components/primitives/Text';
 import { Button } from '@/components/primitives/Button';
-import { FormField } from '@/components/form/FormField';
-import { Spacer } from '@/components/primitives/Spacer';
+import { Input } from '@/components/primitives/Input';
+import { PasswordValidationRules } from '@/components/form/PasswordValidationRules';
+import { MobileNumberWarning } from '@/components/form/MobileNumberWarning';
+import { LanguageDropdown } from '@/components/LanguageDropdown';
+import { vs } from '@/utils/scale';
+import { lightTheme } from '@/styles/tokens';
+import { Icon } from '@/components/icons';
 
 type AuthStackParamList = {
-  ResetPassword: { email: string; resetToken: string };
+  ResetPassword: { mobileNumber?: string; email?: string; resetToken: string };
   Login: undefined;
 };
 
@@ -37,7 +43,7 @@ export const ResetPasswordScreen = () => {
   const route = useRoute<ResetPasswordScreenRouteProp>();
   const { showToast } = useToast();
   const [loading, setLoading] = useState(false);
-  const { email, resetToken } = route.params;
+  const { mobileNumber, email, resetToken } = route.params;
 
   const {
     control,
@@ -49,16 +55,61 @@ export const ResetPasswordScreen = () => {
       newPassword: '',
       confirmPassword: '',
     },
-    mode: 'onBlur',
+    mode: 'onChange', // Validate on change for real-time feedback
+    reValidateMode: 'onChange',
   });
 
   const newPassword = watch('newPassword');
+  const confirmPassword = watch('confirmPassword');
+
+  // Password validation function
+  const validatePassword = (password: string): string | undefined => {
+    if (!password) return undefined; // Let required rule handle empty
+    
+    if (password.length < 1) {
+      return t('auth.resetPassword.passwordMinLength');
+    }
+    if (password.length > 25) {
+      return t('auth.resetPassword.passwordMaxLength');
+    }
+    if (!/[a-z]/.test(password)) {
+      return t('auth.resetPassword.passwordLowercase');
+    }
+    if (!/[A-Z]/.test(password)) {
+      return t('auth.resetPassword.passwordUppercase');
+    }
+    if (!/[0-9]/.test(password)) {
+      return t('auth.resetPassword.passwordNumber');
+    }
+    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
+      return t('auth.resetPassword.passwordSpecialChar');
+    }
+    if (mobileNumber && password.includes(mobileNumber)) {
+      return t('auth.resetPassword.passwordContainsMobile');
+    }
+    return undefined;
+  };
+
+  // Check if passwords match
+  const passwordsMatch = useMemo(() => {
+    if (!newPassword || !confirmPassword) return true; // Don't show error until both are filled
+    return newPassword === confirmPassword;
+  }, [newPassword, confirmPassword]);
+
+  // Check if form is valid
+  const isFormValid = useMemo(() => {
+    const hasNewPassword = newPassword && newPassword.length > 0;
+    const hasConfirmPassword = confirmPassword && confirmPassword.length > 0;
+    const noErrors = !errors.newPassword && !errors.confirmPassword;
+    const passwordsMatch = newPassword === confirmPassword;
+    return hasNewPassword && hasConfirmPassword && noErrors && passwordsMatch && !validatePassword(newPassword);
+  }, [newPassword, confirmPassword, errors]);
 
   const onSubmit = async (data: ResetPasswordFormData) => {
     try {
       setLoading(true);
       const response = await api.post('/auth/reset-password', {
-        email,
+        email: email || mobileNumber,
         resetToken,
         newPassword: data.newPassword,
       });
@@ -78,67 +129,163 @@ export const ResetPasswordScreen = () => {
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      className="flex-1 bg-white"
-    >
-      <ScrollView
-        contentContainerStyle={{ flexGrow: 1 }}
-        keyboardShouldPersistTaps="handled"
+    <View className="flex-1 bg-theme-background">
+      <StatusBar barStyle="dark-content" backgroundColor={lightTheme.background} />
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        className="flex-1"
       >
-        <Box className="flex-1 justify-center px-6" p={24}>
-          <Text variant="h1" className="text-theme-text-primary mb-2">
-            {t('auth.resetPassword.title')}
-          </Text>
-          <Text variant="body" className="text-theme-text-secondary mb-8">
-            {t('auth.resetPassword.subtitle')}
-          </Text>
+        <ScrollView
+          contentContainerStyle={{ flexGrow: 1 }}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Status Bar Area */}
+          <View style={{ height: vs(46.15) }} />
 
-          <FormField
-            control={control}
-            name="newPassword"
-            label={t('auth.resetPassword.newPassword')}
-            placeholder={t('auth.resetPassword.newPassword')}
-            secureTextEntry
-            autoCapitalize="none"
-            autoComplete="password-new"
-            testID="reset-password-new-input"
-            rules={{
-              required: 'Password is required',
-              minLength: {
-                value: 8,
-                message: 'Password must be at least 8 characters',
-              },
-            }}
-          />
-          <Spacer height={16} />
+          {/* Header */}
+          <View className="border-b border-theme-border px-[15.38px] pt-[15.38px] pb-[15.38px]">
+            <View className="flex-row justify-between items-center">
+              {/* Back Button */}
+              <TouchableOpacity
+                onPress={() => navigation.goBack()}
+                className="w-10 h-10 justify-center items-center"
+              >
+                <Icon name="chevron-left" size={24} color={lightTheme.textPrimary} />
+              </TouchableOpacity>
 
-          <FormField
-            control={control}
-            name="confirmPassword"
-            label={t('auth.resetPassword.confirmPassword')}
-            placeholder={t('auth.resetPassword.confirmPassword')}
-            secureTextEntry
-            autoCapitalize="none"
-            testID="reset-password-confirm-input"
-            rules={{
-              required: 'Please confirm your password',
-              validate: (value) => value === newPassword || 'Passwords do not match',
-            }}
-          />
-          <Spacer height={24} />
+              {/* Title */}
+              <Text variant="onboardingHeader" className="text-theme-text-primary">
+                {t('auth.resetPassword.screenTitle')}
+              </Text>
 
-          <Button
-            onPress={handleSubmit(onSubmit)}
-            loading={loading}
-            fullWidth
-            testID="reset-password-button"
-          >
-            {t('auth.resetPassword.reset')}
-          </Button>
-        </Box>
-      </ScrollView>
-    </KeyboardAvoidingView>
+              {/* Language Dropdown */}
+              <LanguageDropdown />
+            </View>
+          </View>
+
+          {/* Content Card */}
+          <View className="flex-1 bg-theme-background px-md pt-md">
+            {/* Card Header */}
+            <View className="pb-xs">
+              <Text variant="h1" className="text-theme-text-primary">
+                {t('auth.resetPassword.title')}
+              </Text>
+            </View>
+
+
+            {/* New Password Field */}
+            <View className="pb-md">
+              <Controller
+                control={control}
+                name="newPassword"
+                rules={{
+                  required: t('auth.resetPassword.passwordRequired'),
+                  validate: validatePassword,
+                }}
+                render={({ field: { onChange, value } }) => (
+                  <Input
+                    variant="password"
+                    value={value || ''}
+                    onChangeText={onChange}
+                    label={t('auth.resetPassword.newPassword')}
+                    placeholder={t('auth.resetPassword.newPasswordPlaceholder')}
+                    error={errors.newPassword?.message}
+                    testID="reset-password-new-input"
+                  />
+                )}
+              />
+              
+            
+            </View>
+
+            {/* Confirm Password Field */}
+            <View className="pb-md">
+              <Controller
+                control={control}
+                name="confirmPassword"
+                rules={{
+                  required: t('auth.resetPassword.confirmPasswordRequired'),
+                  validate: (value) => {
+                    if (!value) return t('auth.resetPassword.confirmPasswordRequired');
+                    if (value !== newPassword) return t('auth.resetPassword.passwordsMatch');
+                    return true;
+                  },
+                }}
+                render={({ field: { onChange, value } }) => (
+                  <Input
+                    variant="password"
+                    value={value || ''}
+                    onChangeText={onChange}
+                    label={t('auth.resetPassword.confirmPassword')}
+                    placeholder={t('auth.resetPassword.confirmPasswordPlaceholder')}
+                    error={errors.confirmPassword?.message}
+                    testID="reset-password-confirm-input"
+                  />
+                )}
+              />
+              
+            {/* Mobile Number Warning - Sticky Bar */}
+
+              {/* Password Match Indicator */}
+              {confirmPassword && confirmPassword.length > 0 && (
+                <View className="mt-xs">
+                  <View className="flex-row items-center gap-xs">
+                    {passwordsMatch ? (
+                      <>
+                        <View className="w-4 h-4 items-center justify-center">
+                          <Text className="text-success text-xs">✓</Text>
+                        </View>
+                        <Text variant="caption" className="text-success lowercase">
+                          passwords match
+                        </Text>
+                      </>
+                    ) : (
+                      <>
+                        <View className="w-4 h-4 items-center justify-center">
+                          <Text className="text-error-dark text-xs">✕</Text>
+                        </View>
+                        <Text variant="caption" className="text-error-dark lowercase">
+                          passwords do not match
+                        </Text>
+                      </>
+                    )}
+                  </View>
+                </View>
+              )}
+            </View>
+            <MobileNumberWarning password={newPassword} mobileNumber={mobileNumber} />
+
+            {/* Subtitle */}
+            <View className="pb-md">
+              <Text variant="text-small-tight" className="text-theme-text-primary">
+                {t('auth.resetPassword.subtitle')}
+              </Text>
+            </View>
+  {/* Password Validation Rules */}
+  <PasswordValidationRules
+                password={newPassword || ''}
+                mobileNumber={mobileNumber}
+                showWhenEmpty={true}
+              />
+            {/* Buttons */}
+            <View className="gap-sm pt-md pb-md">
+              <Button
+                variant="solid"
+                size="medium"
+                onPress={handleSubmit(onSubmit)}
+                loading={loading}
+                disabled={!isFormValid}
+                fullWidth
+                testID="reset-password-button"
+              >
+                {t('auth.resetPassword.reset')}
+              </Button>
+            </View>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </View>
   );
 };
 

@@ -275,6 +275,12 @@ export const typography = {
     fontWeight: '400' as const,
     fontFamily: fontFamily.primary,
   },
+  bodySmallTight: {
+    fontSize: 14,
+    lineHeight: 15, // 14px font with 15px line height
+    fontWeight: '400' as const,
+    fontFamily: fontFamily.primary,
+  },
   bodyTight: {
     fontSize: 16,
     lineHeight: 16, // 100% = 16px
@@ -474,6 +480,12 @@ export const textStyles = {
   'text-small': {
     fontSize: typography.bodySmall.fontSize,
     lineHeight: typography.bodySmall.lineHeight,
+    fontWeight: fontWeight.regular,
+    fontFamily: fontFamily.primary,
+  },
+  'text-small-tight': {
+    fontSize: typography.bodySmallTight.fontSize,
+    lineHeight: typography.bodySmallTight.lineHeight,
     fontWeight: fontWeight.regular,
     fontFamily: fontFamily.primary,
   },

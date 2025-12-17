@@ -46,7 +46,7 @@
       "mobileNumberPlaceholder": "eg. 33011234"
     },
     "otpVerification": {
-      "screenTitle": "verify code",
+     "screenTitle": "verify code",
       "title": "enter verification code",
       "subtitle": "enter the 4-digit code sent to {{mobileNumber}}",
       "otp": "OTP Code",
@@ -63,15 +63,25 @@
       "success": "OTP code has been entered successfully."
     },
     "resetPassword": {
-      "title": "Reset Password",
-      "subtitle": "Enter your new password",
-      "newPassword": "New Password",
-      "confirmPassword": "Confirm Password",
-      "reset": "Reset Password",
-      "passwordRequired": "Password is required",
-      "passwordMinLength": "Password must be at least 8 characters",
-      "confirmPasswordRequired": "Please confirm your password",
-      "passwordsMatch": "Passwords do not match"
+      "screenTitle": "reset password",
+      "title": "enter new password",
+      "subtitle": "your password must contain:",
+      "newPassword": "new password",
+      "newPasswordPlaceholder": "enter new password",
+      "confirmPassword": "confirm password",
+      "confirmPasswordPlaceholder": "re-enter password",
+      "reset": "reset password",
+      "passwordRequired": "password is required",
+      "passwordMinLength": "at least 8 characters",
+      "passwordMaxLength": "at most 25 characters",
+      "passwordLowercase": "at least 1 lowercase letter",
+      "passwordUppercase": "at least 1 uppercase letter",
+      "passwordNumber": "at least 1 number or symbol",
+      "passwordSpecialChar": "password must contain at least one special character",
+      "passwordContainsMobile": "password should not contain your mobile number",
+      "confirmPasswordRequired": "please confirm your password",
+      "passwordsMatch": "passwords do not match"
+      
     }
   },
   "common": {
