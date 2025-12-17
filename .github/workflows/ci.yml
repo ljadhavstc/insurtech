@@ -131,13 +131,19 @@ jobs:
       with:
         xcode-version: 'latest-stable'
     
+    - name: List available simulators
+      run: |
+        xcrun simctl list devices available
+      
     - name: Build iOS (Debug)
       run: |
         cd ios
+        # Build for iOS Simulator without requiring a specific device
+        # This works in CI environments where simulators may not be booted
         xcodebuild -workspace insurtech.xcworkspace \
           -scheme insurtech \
           -configuration Debug \
-          -destination 'platform=iOS Simulator,name=iPhone 15' \
+          -sdk iphonesimulator \
           -derivedDataPath build \
           build \
           CODE_SIGN_IDENTITY="" \
