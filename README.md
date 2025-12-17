@@ -196,6 +196,24 @@ See the `docs/` folder for comprehensive documentation:
 - [Services](docs/services.html)
 - [Stores](docs/stores.html)
 
+## CI/CD Pipeline
+
+The project uses GitHub Actions to build APK and IPA files.
+
+### Quick Start
+
+1. **Generate keystore:** `./scripts/generate-keystore.sh`
+2. **Add secrets to GitHub:** Repository Settings > Secrets > Actions
+3. **Build via Actions:** Go to Actions tab > Select workflow > Run workflow
+
+### Available Workflows
+
+- **CI Pipeline** - Automatic on push/PR (lint, test, debug builds)
+- **Build Android Release** - Manual trigger (builds release APK)
+- **Build iOS Release** - Manual trigger (builds IPA)
+
+See [README_BUILDS.md](README_BUILDS.md) for detailed instructions.
+
 ## Testing
 
 ```bash

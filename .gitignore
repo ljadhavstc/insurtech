@@ -33,6 +33,8 @@ local.properties
 .cxx/
 *.keystore
 !debug.keystore
+android/gradle.properties
+!android/gradle.properties.example
 .kotlin/
 
 # node.js
@@ -103,3 +105,6 @@ Desktop.ini
 
 # Documentation build
 docs/_build/
+
+# GitHub Secrets reference (contains sensitive data)
+.github-secrets-reference.txt
