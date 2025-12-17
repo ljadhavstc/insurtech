@@ -20,6 +20,7 @@ import { FormField } from '@/components/form/FormField';
 import { LanguageDropdown } from '@/components/LanguageDropdown';
 import { s, vs, ms } from '@/utils/scale';
 import { lightTheme, typography } from '@/styles/tokens';
+import { Icon } from '@/components/icons';
 
 type AuthStackParamList = {
   Login: undefined;
@@ -45,18 +46,27 @@ export const LoginScreen = () => {
     control,
     handleSubmit,
     watch,
-    formState: { errors },
+    formState: { errors, isValid, touchedFields },
   } = useForm<LoginFormData>({
     defaultValues: {
       phoneNumber: '',
       password: '',
     },
-    mode: 'onBlur',
+    mode: 'onBlur', // Validate on blur
+    reValidateMode: 'onChange', // Re-validate on change after first blur
   });
 
   const phoneNumber = watch('phoneNumber');
   const password = watch('password');
-  const isFormValid = phoneNumber && password && password.length >= 8;
+  
+  // Check if form is valid:
+  // 1. Both fields must have values
+  // 2. No validation errors
+  // 3. Password must be at least 8 characters
+  const hasValues = phoneNumber && password && phoneNumber.trim() !== '' && password.trim() !== '';
+  const hasErrors = Object.keys(errors).length > 0;
+  const isPasswordValid = password ? password.length >= 8 : false;
+  const isFormValid = hasValues && !hasErrors && isPasswordValid;
 
   const onSubmit = async (data: LoginFormData) => {
     try {
@@ -115,14 +125,11 @@ export const LoginScreen = () => {
                   alignItems: 'center',
                 }}
               >
-                <Text
-                  style={{
-                    fontSize: s(24),
-                    color: lightTheme.textPrimary,
-                  }}
-                >
-                  ←
-                </Text>
+                <Icon 
+                  name="chevron-left" 
+                  size={24} 
+                  color={lightTheme.textPrimary} 
+                />
               </TouchableOpacity>
               
               {/* Title */}
@@ -164,33 +171,19 @@ export const LoginScreen = () => {
               <FormField
                 control={control}
                 name="phoneNumber"
+                variant="mobile"
                 label={t('auth.login.phoneNumber')}
                 placeholder="eg. 33011234"
-                keyboardType="phone-pad"
-                autoCapitalize="none"
-                autoComplete="tel"
                 testID="login-phone-input"
-                rules={{
-                  required: t('auth.login.phoneRequired'),
-                }}
               />
 
               <FormField
                 control={control}
                 name="password"
+                variant="password"
                 label={t('auth.login.password')}
                 placeholder="enter password"
-                secureTextEntry
-                autoCapitalize="none"
-                autoComplete="password"
                 testID="login-password-input"
-                rules={{
-                  required: t('auth.login.passwordRequired'),
-                  minLength: {
-                    value: 8,
-                    message: t('auth.login.passwordMinLength'),
-                  },
-                }}
               />
             </View>
 

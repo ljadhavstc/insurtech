@@ -20,6 +20,7 @@ import { ms } from '@/utils/scale';
 import { Text } from '../primitives/Text';
 import { Box } from '../primitives/Box';
 import { Input } from '../primitives/Input';
+import { ChevronDownIcon } from '../icons';
 
 export interface DropdownOption {
   label: string;
@@ -119,9 +120,7 @@ export const Dropdown: React.FC<DropdownProps> = ({
         >
           {selectedOption?.label || placeholder}
         </Text>
-        <Text className="text-text-tertiary" size={16}>
-          ▼
-        </Text>
+        <ChevronDownIcon width={ms(16)} height={ms(16)} color="#9CA3AF" />
       </Pressable>
       {error && (
         <Text size={12} className="text-error mt-1">

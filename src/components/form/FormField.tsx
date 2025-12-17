@@ -31,7 +31,7 @@
  * ```
  */
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Controller, Control, FieldPath, FieldValues, RegisterOptions } from 'react-hook-form';
 import { Input, InputProps } from '../primitives/Input';
 
@@ -58,17 +58,64 @@ export function FormField<T extends FieldValues>({
   rules,
   ...inputProps
 }: FormFieldProps<T>) {
+  // Auto-generate rules based on variant if not provided
+  const finalRules = useMemo(() => {
+    if (rules) return rules;
+    
+    // Auto-generate rules based on variant
+    const variant = (inputProps as any).variant;
+    if (!variant) return undefined;
+    
+    switch (variant) {
+      case 'mobile':
+        return {
+          required: 'Phone number is required',
+          pattern: {
+            value: /^[0-9]{8,15}$/,
+            message: 'number is invalid',
+          },
+        };
+      case 'mobile-with-country-code':
+        return {
+          required: 'Phone number is required',
+          pattern: {
+            value: /^(\+966|00966|966)?[0-9]{9}$/,
+            message: 'number is invalid',
+          },
+        };
+      case 'email':
+        return {
+          required: 'Email is required',
+          pattern: {
+            value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+            message: 'email is invalid',
+          },
+        };
+      case 'password':
+        return {
+          required: 'Password is required',
+          minLength: {
+            value: 8,
+            message: 'password must be at least 8 characters',
+          },
+        };
+      default:
+        return undefined;
+    }
+  }, [rules, (inputProps as any).variant]);
+  
   return (
     <Controller
       control={control}
       name={name}
-      rules={rules}
+      rules={finalRules}
       render={({ field: { onChange, value }, fieldState: { error } }) => (
         <Input
           {...inputProps}
           value={value || ''}
           onChangeText={onChange}
           error={error?.message}
+          autoValidate={false} // Disable auto-validate when using react-hook-form
         />
       )}
     />

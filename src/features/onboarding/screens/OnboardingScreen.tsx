@@ -121,26 +121,20 @@ export const OnboardingScreen = () => {
             >
               <Button
                 onPress={handleLogin}
-                variant="primary"
+                variant="solid"
+                size="medium"
                 fullWidth
-                className="bg-brand-red"
-                style={{ height: s(48) }}
               >
-                <Text variant="button" className="text-white lowercase">
-                  Log in
-                </Text>
+                Log in
               </Button>
               
               <Button
                 onPress={handleRegister}
-                variant="outline"
+                variant="ghost"
+                size="medium"
                 fullWidth
-                className="border border-brand-red bg-transparent"
-                style={{ height: s(48) }}
               >
-                <Text variant="button" className="text-brand-red lowercase">
-                  Register
-                </Text>
+                Register
               </Button>
             </View>
           </View>

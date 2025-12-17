@@ -9,13 +9,14 @@
 /* Begin PBXBuildFile section */
 		0C80B921A6F3F58F76C31292 /* libPods-insurtech.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 5DCACB8F33CDC322A6C60F78 /* libPods-insurtech.a */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
+		4AEA1541443F418495C1EAEC /* STCForward.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 05E829CF5FB14F74AFA686EC /* STCForward.ttf */; };
 		6B92EFD855CC4396A2F29C1F /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */; };
 		761780ED2CA45674006654EE /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761780EC2CA45674006654EE /* AppDelegate.swift */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
-		4AEA1541443F418495C1EAEC /* STCForward.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 05E829CF5FB14F74AFA686EC /* STCForward.ttf */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		05E829CF5FB14F74AFA686EC /* STCForward.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = STCForward.ttf; path = ../assets/fonts/STCForward.ttf; sourceTree = "<group>"; };
 		13B07F961A680F5B00A75B9A /* insurtech.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = insurtech.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = insurtech/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = insurtech/Info.plist; sourceTree = "<group>"; };
@@ -26,7 +27,6 @@
 		761780EC2CA45674006654EE /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = insurtech/AppDelegate.swift; sourceTree = "<group>"; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = insurtech/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
-		05E829CF5FB14F74AFA686EC /* STCForward.ttf */ = {isa = PBXFileReference; name = "STCForward.ttf"; path = "../assets/fonts/STCForward.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -41,6 +41,15 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		01E177E7382148DC926423B4 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				05E829CF5FB14F74AFA686EC /* STCForward.ttf */,
+			);
+			name = Resources;
+			path = "";
+			sourceTree = "<group>";
+		};
 		13B07FAE1A68108700A75B9A /* insurtech */ = {
 			isa = PBXGroup;
 			children = (
@@ -100,15 +109,6 @@
 			);
 			path = Pods;
 			sourceTree = "<group>";
-		};
-		01E177E7382148DC926423B4 /* Resources */ = {
-			isa = "PBXGroup";
-			children = (
-				05E829CF5FB14F74AFA686EC /* STCForward.ttf */,
-			);
-			name = Resources;
-			sourceTree = "<group>";
-			path = "";
 		};
 /* End PBXGroup section */
 

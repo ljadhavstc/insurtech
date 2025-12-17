@@ -1,42 +1,123 @@
 /**
  * Input Component
  * 
- * Flexible TextInput wrapper with fixed label (caption) at top,
- * distinct placeholder and entered text colors, and full customization support.
+ * Flexible TextInput wrapper with variants, auto-validation, and validation messages.
+ * Supports multiple input types with automatic validation rules.
  * Integrates with FormField wrapper for react-hook-form.
  * 
  * @example
  * ```tsx
  * <Input
+ *   variant="mobile"
  *   label="phone number"
  *   placeholder="eg. 33011234"
  *   value={value}
  *   onChangeText={onChangeText}
- *   error={error}
  * />
  * ```
  */
 
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   TextInput,
   TextInputProps,
   View,
   ViewStyle,
   TextStyle,
+  TouchableOpacity,
 } from 'react-native';
 import { ms } from '@/utils/scale';
 import { Text } from './Text';
 import { lightTheme, typography } from '@/styles/tokens';
+import { EyeIcon, EyeOffIcon } from '../icons';
 
-export interface InputProps extends TextInputProps {
+// Input type variants
+export type InputVariant = 
+  | 'mobile'                    // Mobile number (local format)
+  | 'mobile-with-country-code'  // Mobile with country code (+966...)
+  | 'email'                     // Email address
+  | 'password'                  // Password with visibility toggle
+  | 'text';                     // Normal text input
+
+// Icon position variants
+export type IconPosition = 
+  | 'none'      // No icon
+  | 'start'     // Icon at start (left)
+  | 'end';      // Icon at end (right)
+
+// Validation rule function type
+type ValidationRule = (value: string) => string | undefined;
+
+// Validation rules for each variant
+const validationRules: Record<InputVariant, ValidationRule> = {
+  mobile: (value: string) => {
+    if (!value) return undefined;
+    // Mobile number: 8-15 digits, can start with 0 or country code
+    const mobileRegex = /^[0-9]{8,15}$/;
+    if (!mobileRegex.test(value.replace(/\s+/g, ''))) {
+      return 'number is invalid';
+    }
+    return undefined;
+  },
+  
+  'mobile-with-country-code': (value: string) => {
+    if (!value) return undefined;
+    // Mobile with country code: +966XXXXXXXXX or 00966XXXXXXXXX
+    const countryCodeRegex = /^(\+966|00966|966)?[0-9]{9}$/;
+    const cleanValue = value.replace(/\s+/g, '');
+    if (!countryCodeRegex.test(cleanValue)) {
+      return 'number is invalid';
+    }
+    return undefined;
+  },
+  
+  email: (value: string) => {
+    if (!value) return undefined;
+    const emailRegex = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
+    if (!emailRegex.test(value)) {
+      return 'email is invalid';
+    }
+    return undefined;
+  },
+  
+  password: (value: string) => {
+    if (!value) return undefined;
+    if (value.length < 8) {
+      return 'password must be at least 8 characters';
+    }
+    if (!/(?=.*[a-z])/.test(value)) {
+      return 'password must contain at least one lowercase letter';
+    }
+    if (!/(?=.*[A-Z])/.test(value)) {
+      return 'password must contain at least one uppercase letter';
+    }
+    if (!/(?=.*[0-9])/.test(value)) {
+      return 'password must contain at least one number';
+    }
+    return undefined;
+  },
+  
+  text: () => undefined, // No validation for plain text
+};
+
+export interface InputProps extends Omit<TextInputProps, 'secureTextEntry'> {
   /**
-   * Error message to display
+   * Input variant - determines validation rules and keyboard type
+   */
+  variant?: InputVariant;
+  
+  /**
+   * Icon position variant
+   */
+  iconPosition?: IconPosition;
+  
+  /**
+   * Error message to display (overrides auto-validation)
    */
   error?: string;
   
   /**
-   * Label text (caption) shown above input - fixed position and styling
+   * Label text (caption) shown inside input - fixed position and styling
    */
   label?: string;
   
@@ -46,14 +127,29 @@ export interface InputProps extends TextInputProps {
   helperText?: string;
   
   /**
-   * Left icon component
+   * Icon component (used based on iconPosition)
+   */
+  icon?: React.ReactNode;
+  
+  /**
+   * Left icon component (overrides iconPosition)
    */
   leftIcon?: React.ReactNode;
   
   /**
-   * Right icon component
+   * Right icon component (overrides iconPosition)
    */
   rightIcon?: React.ReactNode;
+  
+  /**
+   * Show password visibility toggle (for password variant)
+   */
+  showPasswordToggle?: boolean;
+  
+  /**
+   * Enable auto-validation based on variant
+   */
+  autoValidate?: boolean;
   
   /**
    * Additional Tailwind classes for container
@@ -93,9 +189,9 @@ export interface InputProps extends TextInputProps {
     textColor?: string;
     /** Border color - default: border (#DFE0E6) */
     borderColor?: string;
-    /** Border color when error - default: error */
+    /** Border color when error - default: #F3607A */
     errorBorderColor?: string;
-    /** Error text color - default: error */
+    /** Error text color - default: #D81034 */
     errorTextColor?: string;
   };
   
@@ -107,17 +203,22 @@ export interface InputProps extends TextInputProps {
     labelSize?: number;
     /** Input font size - default: 16 */
     inputSize?: number;
-    /** Error text font size - default: 12 */
+    /** Error text font size - default: 14 */
     errorSize?: number;
   };
 }
 
 export const Input: React.FC<InputProps> = ({
-  error,
+  variant = 'text',
+  iconPosition = 'none',
+  error: externalError,
   label,
   helperText,
+  icon,
   leftIcon,
   rightIcon,
+  showPasswordToggle = true,
+  autoValidate = true,
   className,
   testID,
   style,
@@ -126,34 +227,98 @@ export const Input: React.FC<InputProps> = ({
   colors,
   typography: typographyOverrides,
   value,
+  onChangeText,
   ...props
 }) => {
-  const hasError = !!error;
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+  const [internalError, setInternalError] = useState<string | undefined>();
+  
   const scaledRadius = ms(2); // Border radius from Figma: 2px
   
+  // Determine keyboard type and secure text entry based on variant
+  const keyboardType = useMemo(() => {
+    switch (variant) {
+      case 'mobile':
+      case 'mobile-with-country-code':
+        return 'phone-pad';
+      case 'email':
+        return 'email-address';
+      case 'password':
+        return 'default';
+      default:
+        return 'default';
+    }
+  }, [variant]);
+  
+  const secureTextEntry = variant === 'password' && !isPasswordVisible;
+  
+  // Auto-validation
+  const validationError = useMemo(() => {
+    if (!autoValidate || !value) return undefined;
+    const rule = validationRules[variant];
+    return rule(value);
+  }, [value, variant, autoValidate]);
+  
+  const error = externalError || internalError || validationError;
+  const hasError = !!error;
+  
   // Default colors from Figma design
-  const labelColor = colors?.labelColor ?? '#687078'; // fill_EZZERF from Figma
-  const placeholderColor = colors?.placeholderColor ?? '#687078'; // fill_EZZERF from Figma
-  const textColor = colors?.textColor ?? '#090D0F'; // fill_H6RGWM from Figma (for entered text)
+  const labelColor = colors?.labelColor ?? '#687078'; // fill_48KQHY from Figma
+  const placeholderColor = colors?.placeholderColor ?? '#687078';
+  const textColor = colors?.textColor ?? '#090D0F'; // fill_7ZB7A5 from Figma
   const borderColor = hasError 
-    ? (colors?.errorBorderColor ?? lightTheme.error)
-    : (colors?.borderColor ?? '#DFE0E6'); // stroke_GQS94T from Figma
-  const errorTextColor = colors?.errorTextColor ?? lightTheme.error;
+    ? (colors?.errorBorderColor ?? '#F3607A') // stroke_01NKHH from Figma error state
+    : (colors?.borderColor ?? '#DFE0E6');
+  const errorTextColor = colors?.errorTextColor ?? '#D81034'; // fill_OHE7T0 from Figma
   
   // Default typography sizes from Figma design
-  // Label: english/label/label-xsmall-regular - 12px, 1.25em line height
   const labelSize = typographyOverrides?.labelSize ?? 12;
   const labelLineHeight = labelSize * 1.25; // 1.25em from Figma
   
-  // Input: english/body/body-medium-regular - 16px, 1.25em line height
   const inputSize = typographyOverrides?.inputSize ?? 16;
   const inputLineHeight = inputSize * 1.25; // 1.25em from Figma
   
-  const errorSize = typographyOverrides?.errorSize ?? 12;
+  const errorSize = typographyOverrides?.errorSize ?? 14; // From Figma style_PN61H8
+  const errorLineHeight = errorSize * 1.2142857142857142; // 1.2142857142857142em from Figma
   
-  // Check if input has value (to determine if placeholder should show)
-  const hasValue = value !== undefined && value !== null && value !== '';
-
+  // Handle icon positioning
+  const displayLeftIcon = leftIcon || (iconPosition === 'start' && icon);
+  const displayRightIcon = rightIcon || (iconPosition === 'end' && icon);
+  
+  // Password visibility toggle icon
+  const passwordToggleIcon = variant === 'password' && showPasswordToggle ? (
+    <TouchableOpacity
+      onPress={() => setIsPasswordVisible(!isPasswordVisible)}
+      style={{
+        padding: ms(4),
+      }}
+    >
+      {isPasswordVisible ? (
+        <EyeOffIcon width={ms(20)} height={ms(20)} color={labelColor} />
+      ) : (
+        <EyeIcon width={ms(20)} height={ms(20)} color={labelColor} />
+      )}
+    </TouchableOpacity>
+  ) : null;
+  
+  const finalRightIcon = displayRightIcon || passwordToggleIcon;
+  
+  // Handle text change with validation
+  const handleChangeText = (text: string) => {
+    if (onChangeText) {
+      onChangeText(text);
+    }
+    
+    // Update internal error on change
+    if (autoValidate && text) {
+      const rule = validationRules[variant];
+      const validationResult = rule(text);
+      setInternalError(validationResult);
+    } else {
+      setInternalError(undefined);
+    }
+  };
+  
   return (
     <View 
       className={`w-full ${className || ''}`}
@@ -166,47 +331,46 @@ export const Input: React.FC<InputProps> = ({
             flexDirection: 'row',
             alignItems: 'center',
             borderWidth: 1,
-            borderColor, // #DFE0E6 from Figma stroke_GQS94T
-            backgroundColor: '#FFFFFF', // fill_KBO61H from Figma
-            borderRadius: scaledRadius, // 2px from Figma
-            paddingHorizontal: ms(16), // 16px horizontal padding (responsive)
-            paddingVertical: ms(10.5), // 10.5px vertical padding (responsive)
-            gap: ms(4), // 4px gap from Figma layout_QGHPSN
+            borderColor,
+            backgroundColor: '#FFFFFF',
+            borderRadius: scaledRadius,
+            paddingHorizontal: ms(16),
+            paddingVertical: ms(10.5),
+            gap: ms(4),
             minHeight: ms(48),
           },
           styles?.inputContainer,
         ]}
       >
         {/* Left Icon */}
-        {leftIcon && (
+        {displayLeftIcon && (
           <View style={{ marginRight: ms(4) }}>
-            {leftIcon}
+            {displayLeftIcon}
           </View>
         )}
         
-        {/* Text Container - Matching Figma layout_0BDB1J */}
+        {/* Text Container */}
         <View
           style={{
             flex: 1,
-            paddingHorizontal: 0, // No additional horizontal padding (already handled by container)
-            gap: ms(4), // 4px gap from Figma
+            paddingHorizontal: 0,
+            gap: ms(4),
             flexDirection: 'column',
             justifyContent: 'center',
           }}
         >
-          {/* Label (Caption) - Inside input, fixed position and styling from Figma */}
+          {/* Label (Caption) - Inside input */}
           {label && (
             <Text
               variant="caption"
               style={[
                 {
-                  fontSize: ms(labelSize), // 12px from Figma english/label/label-xsmall-regular
-                  lineHeight: ms(labelLineHeight), // 1.25em = 15px
+                  fontSize: ms(labelSize),
+                  lineHeight: ms(labelLineHeight),
                   fontWeight: '400',
-                  fontFamily: typography.caption.fontFamily, // STC Forward
-                  color: labelColor, // #687078 from Figma fill_EZZERF
+                  fontFamily: typography.caption.fontFamily,
+                  color: labelColor,
                   textAlign: 'left',
-                  marginBottom: ms(0), // No margin when inside
                 },
                 styles?.label,
               ]}
@@ -215,51 +379,56 @@ export const Input: React.FC<InputProps> = ({
             </Text>
           )}
           
-          {/* TextInput - Matching Figma english/body/body-medium-regular */}
+          {/* TextInput */}
           <TextInput
             testID={testID}
             placeholder={placeholder}
-            placeholderTextColor={placeholderColor} // #687078 from Figma fill_EZZERF
+            placeholderTextColor={placeholderColor}
             value={value}
+            keyboardType={keyboardType}
+            secureTextEntry={secureTextEntry}
+            autoCapitalize={variant === 'email' ? 'none' : 'sentences'}
+            autoCorrect={variant !== 'email' && variant !== 'password'}
+            onChangeText={handleChangeText}
             style={[
               {
-                fontSize: ms(inputSize), // 16px from Figma english/body/body-medium-regular
-                lineHeight: ms(inputLineHeight), // 1.25em = 20px
+                fontSize: ms(inputSize),
+                lineHeight: ms(inputLineHeight),
                 fontWeight: '400',
-                fontFamily: typography.body.fontFamily, // STC Forward
-                color: textColor, // #090D0F for entered text, #687078 for placeholder
+                fontFamily: typography.body.fontFamily,
+                color: textColor,
                 padding: 0,
                 margin: 0,
                 minHeight: ms(20),
                 textAlign: 'left',
               },
               styles?.input,
-              style, // Allow style prop override
+              style,
             ]}
             {...props}
           />
         </View>
         
         {/* Right Icon */}
-        {rightIcon && (
+        {finalRightIcon && (
           <View style={{ marginLeft: ms(4) }}>
-            {rightIcon}
+            {finalRightIcon}
           </View>
         )}
       </View>
       
-      {/* Error/Helper Text */}
+      {/* Error/Helper Text - Matching Figma style_PN61H8 */}
       {(error || helperText) && (
         <View style={{ marginTop: ms(4) }}>
           <Text
-            variant="caption"
             style={[
               {
-                fontSize: ms(errorSize),
-                lineHeight: ms(errorSize * 1.25),
+                fontSize: ms(errorSize), // 14px from Figma
+                lineHeight: ms(errorLineHeight), // 1.2142857142857142em = ~17px
                 fontWeight: '400',
-                fontFamily: typography.caption.fontFamily,
-                color: hasError ? errorTextColor : lightTheme.textTertiary,
+                fontFamily: typography.bodySmall.fontFamily, // STC Forward
+                color: hasError ? errorTextColor : lightTheme.textTertiary, // #D81034 from Figma
+                textAlign: 'left',
               },
               styles?.errorText,
             ]}
@@ -273,4 +442,3 @@ export const Input: React.FC<InputProps> = ({
 };
 
 export default Input;
-

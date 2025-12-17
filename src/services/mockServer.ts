@@ -10,10 +10,17 @@
 import api from './api';
 
 // Mock data storage
-const mockUsers: Record<string, { email: string; password: string; otp?: string }> = {
+const mockUsers: Record<string, { email: string; phoneNumber?: string; password: string; otp?: string }> = {
   'user@example.com': {
     email: 'user@example.com',
+    phoneNumber: '33011234',
     password: 'password123',
+  },
+  // Sample user for testing
+  '33011234': {
+    email: 'test@example.com',
+    phoneNumber: '33011234',
+    password: 'Password123',
   },
 };
 
@@ -28,25 +35,39 @@ const generateToken = (email: string): { token: string; refreshToken: string } =
 };
 
 // Simulate network latency
-const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+const delay = (ms: number) => new Promise<void>((resolve) => setTimeout(() => resolve(), ms));
 
 /**
  * Mock login endpoint
+ * Supports both email and phoneNumber login
  */
-export const mockLogin = async (email: string, password: string) => {
+export const mockLogin = async (emailOrPhone: string, password: string) => {
   await delay(1000); // Simulate network delay
 
-  const user = mockUsers[email];
-  if (!user || user.password !== password) {
-    throw new Error('Invalid email or password');
+  // Try to find user by email or phoneNumber
+  let user = mockUsers[emailOrPhone];
+  if (!user) {
+    // Search by phoneNumber
+    const foundUser = Object.values(mockUsers).find(
+      (u) => u.phoneNumber === emailOrPhone
+    );
+    if (foundUser) {
+      user = foundUser;
+    }
   }
 
-  const tokens = generateToken(email);
+  if (!user || user.password !== password) {
+    throw new Error('Invalid credentials');
+  }
+
+  const identifier = user.email || emailOrPhone;
+  const tokens = generateToken(identifier);
   return {
     success: true,
     user: {
       email: user.email,
-      id: email,
+      phoneNumber: user.phoneNumber,
+      id: identifier,
     },
     ...tokens,
   };
@@ -174,9 +195,11 @@ if (__DEV__) {
   // Intercept API calls and route to mock functions
   const originalPost = api.post;
   
-  api.post = async (url: string, data?: any) => {
+  api.post = async (url: string, data?: any): Promise<any> => {
     if (url.includes('/auth/login')) {
-      return { data: await mockLogin(data.email, data.password) };
+      // Support both email and phoneNumber login
+      const identifier = data.phoneNumber || data.email;
+      return { data: await mockLogin(identifier, data.password) };
     }
     if (url.includes('/auth/register')) {
       return { data: await mockRegister(data.email, data.password, data.name) };

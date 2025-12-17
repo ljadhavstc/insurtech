@@ -17,7 +17,7 @@ import React from 'react';
 import { Pressable, PressableProps, ActivityIndicator } from 'react-native';
 import { ms } from '@/utils/scale';
 import { Text } from './Text';
-import { lightTheme, typography } from '@/styles/tokens';
+import { lightTheme, typography, brandColors } from '@/styles/tokens';
 
 export type ButtonVariant = 'solid' | 'ghost';
 export type ButtonSize = 'small' | 'medium' | 'large';
@@ -89,15 +89,15 @@ export const Button: React.FC<ButtonProps> = ({
   const scaledRadius = ms(2); // Border radius from Figma: 2px
   const scaledFontSize = ms(sizeConfig.fontSize);
 
-  // Solid variant: Disabled uses #FFC1CD, enabled uses primary color
+  // Solid variant: Disabled uses #FFC1CD, enabled uses primary color (brand red)
   // Ghost variant: Transparent background with text color
   const backgroundColor = variant === 'solid' 
-    ? (isDisabled ? '#FFC1CD' : lightTheme.interactive)
+    ? (isDisabled ? '#FFC1CD' : brandColors.red) // Primary color: #FF375E
     : 'transparent';
   
   const textColor = variant === 'solid'
     ? (isDisabled ? '#FFFFFF' : '#FFFFFF')
-    : lightTheme.interactiveActive; // #FF375E for ghost variant
+    : brandColors.red; // #FF375E for ghost variant (primary color)
 
   return (
     <Pressable
