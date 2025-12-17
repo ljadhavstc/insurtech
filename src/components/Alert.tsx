@@ -10,8 +10,6 @@
  */
 
 import React from 'react';
-import { View } from 'react-native';
-import { ms } from '@/utils/scale';
 import { Box } from './primitives/Box';
 import { Text } from './primitives/Text';
 
@@ -72,20 +70,18 @@ export const Alert: React.FC<AlertProps> = ({
 
   return (
     <Box
-      className={`${styles.bg} border ${styles.border} ${className || ''}`}
+      className={`${styles.bg} border ${styles.border} rounded-md ${className || ''}`}
       p={12}
-      style={{ borderRadius: ms(8) }}
     >
       {title && (
         <Text
-          size={16}
-          className={styles.text}
-          style={{ fontWeight: '600', marginBottom: ms(4) }}
+          variant="body"
+          className={`${styles.text} font-semibold mb-xs`}
         >
           {title}
         </Text>
       )}
-      <Text size={14} className={styles.text}>
+      <Text variant="bodySmall" className={styles.text}>
         {message}
       </Text>
     </Box>

@@ -13,7 +13,7 @@
  */
 
 import React from 'react';
-import { View, ViewProps, StyleSheet } from 'react-native';
+import { View, ViewProps } from 'react-native';
 import { ms } from '@/utils/scale';
 
 export interface BoxProps extends ViewProps {
@@ -113,7 +113,7 @@ export const Box: React.FC<BoxProps> = ({
   children,
   ...props
 }) => {
-  const scaledStyles = StyleSheet.create({
+  const scaledStyles = {
     padding: p ? ms(p) : undefined,
     paddingHorizontal: px ? ms(px) : undefined,
     paddingVertical: py ? ms(py) : undefined,
@@ -128,7 +128,7 @@ export const Box: React.FC<BoxProps> = ({
     marginBottom: mb ? ms(mb) : undefined,
     marginLeft: ml ? ms(ml) : undefined,
     marginRight: mr ? ms(mr) : undefined,
-  });
+  };
 
   return (
     <View

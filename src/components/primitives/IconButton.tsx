@@ -14,8 +14,7 @@
  */
 
 import React from 'react';
-import { Pressable, PressableProps, StyleSheet } from 'react-native';
-import { ms } from '@/utils/scale';
+import { Pressable, PressableProps } from 'react-native';
 
 export type IconButtonVariant = 'primary' | 'secondary' | 'ghost' | 'outline';
 export type IconButtonSize = 'sm' | 'md' | 'lg';
@@ -47,10 +46,10 @@ export interface IconButtonProps extends Omit<PressableProps, 'style'> {
   testID?: string;
 }
 
-const sizeMap: Record<IconButtonSize, number> = {
-  sm: 32,
-  md: 40,
-  lg: 48,
+const sizeMap: Record<IconButtonSize, string> = {
+  sm: 'w-8 h-8',
+  md: 'w-10 h-10',
+  lg: 'w-12 h-12',
 };
 
 const variantStyles: Record<IconButtonVariant, string> = {
@@ -68,23 +67,16 @@ export const IconButton: React.FC<IconButtonProps> = ({
   testID,
   ...props
 }) => {
-  const buttonSize = ms(sizeMap[size]);
-
   return (
     <Pressable
       testID={testID}
       className={`
         ${variantStyles[variant]}
+        ${sizeMap[size]}
         items-center justify-center
         rounded-full
         ${className || ''}
       `}
-      style={[
-        {
-          width: buttonSize,
-          height: buttonSize,
-        },
-      ]}
       {...props}
     >
       {icon}

@@ -107,17 +107,15 @@ export const Button: React.FC<ButtonProps> = ({
       className={`
         ${fullWidth ? 'w-full' : ''}
         items-center justify-center
+        rounded-sm
+        ${variant === 'ghost' && isDisabled ? 'opacity-50' : ''}
         ${className || ''}
       `}
-      style={[
-        {
-          height: scaledHeight,
-          borderRadius: scaledRadius,
-          paddingHorizontal: scaledPaddingHorizontal,
-          backgroundColor,
-          opacity: variant === 'ghost' && isDisabled ? 0.5 : 1,
-        },
-      ]}
+      style={{
+        height: scaledHeight,
+        paddingHorizontal: scaledPaddingHorizontal,
+        backgroundColor,
+      }}
       {...props}
     >
       {loading ? (
@@ -127,14 +125,10 @@ export const Button: React.FC<ButtonProps> = ({
         />
       ) : (
         <Text
+          variant="button"
+          className="lowercase text-center"
           style={{
-            fontSize: scaledFontSize,
-            lineHeight: scaledFontSize * 1.25, // 1.25em line height
-            fontWeight: '400',
-            fontFamily: typography.button.fontFamily,
             color: textColor,
-            textTransform: 'lowercase',
-            textAlign: 'center',
           }}
         >
           {children}

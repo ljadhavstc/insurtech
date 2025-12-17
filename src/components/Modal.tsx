@@ -12,8 +12,7 @@
  */
 
 import React from 'react';
-import { Modal as RNModal, Pressable, View } from 'react-native';
-import { ms } from '@/utils/scale';
+import { Modal as RNModal, Pressable } from 'react-native';
 import { Box } from './primitives/Box';
 
 export interface ModalProps {
@@ -64,9 +63,8 @@ export const Modal: React.FC<ModalProps> = ({
       >
         <Pressable onPress={(e) => e.stopPropagation()}>
           <Box
-            className={`bg-white rounded-xl ${contentClassName || ''}`}
+            className={`bg-white rounded-xl max-w-[90%] max-h-[90%] ${contentClassName || ''}`}
             p={24}
-            style={{ maxWidth: '90%', maxHeight: '90%' }}
           >
             {children}
           </Box>

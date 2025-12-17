@@ -289,9 +289,7 @@ export const Input: React.FC<InputProps> = ({
   const passwordToggleIcon = variant === 'password' && showPasswordToggle ? (
     <TouchableOpacity
       onPress={() => setIsPasswordVisible(!isPasswordVisible)}
-      style={{
-        padding: ms(4),
-      }}
+      className="p-xs"
     >
       {isPasswordVisible ? (
         <EyeOffIcon width={ms(20)} height={ms(20)} color={labelColor} />
@@ -326,52 +324,41 @@ export const Input: React.FC<InputProps> = ({
     >
       {/* Input Container - Matching Figma layout_QGHPSN */}
       <View
+        className={`
+          flex-row items-center
+          border rounded-sm
+          bg-white
+          px-md py-[10.5px]
+          gap-xs
+          min-h-[48px]
+          ${hasError ? 'border-error-light' : 'border-theme-border'}
+        `}
         style={[
           {
-            flexDirection: 'row',
-            alignItems: 'center',
-            borderWidth: 1,
             borderColor,
-            backgroundColor: '#FFFFFF',
-            borderRadius: scaledRadius,
-            paddingHorizontal: ms(16),
-            paddingVertical: ms(10.5),
-            gap: ms(4),
-            minHeight: ms(48),
+            ...styles?.inputContainer,
           },
-          styles?.inputContainer,
         ]}
       >
         {/* Left Icon */}
         {displayLeftIcon && (
-          <View style={{ marginRight: ms(4) }}>
+          <View className="mr-xs">
             {displayLeftIcon}
           </View>
         )}
         
         {/* Text Container */}
-        <View
-          style={{
-            flex: 1,
-            paddingHorizontal: 0,
-            gap: ms(4),
-            flexDirection: 'column',
-            justifyContent: 'center',
-          }}
-        >
+        <View className="flex-1 px-0 gap-xs flex-col justify-center">
           {/* Label (Caption) - Inside input */}
           {label && (
             <Text
               variant="caption"
+              className="text-left lowercase"
               style={[
                 {
                   fontSize: ms(labelSize),
                   lineHeight: ms(labelLineHeight),
-                  fontWeight: '400',
-                  fontFamily: typography.caption.fontFamily,
                   color: labelColor,
-                  textAlign: 'left',
-                  textTransform: 'lowercase',
                 },
                 styles?.label,
               ]}
@@ -391,6 +378,7 @@ export const Input: React.FC<InputProps> = ({
             autoCapitalize={variant === 'email' ? 'none' : 'sentences'}
             autoCorrect={variant !== 'email' && variant !== 'password'}
             onChangeText={handleChangeText}
+            className="p-0 m-0 text-left min-h-[20px]"
             style={[
               {
                 fontSize: ms(inputSize),
@@ -398,10 +386,6 @@ export const Input: React.FC<InputProps> = ({
                 fontWeight: '400',
                 fontFamily: typography.body.fontFamily,
                 color: textColor,
-                padding: 0,
-                margin: 0,
-                minHeight: ms(20),
-                textAlign: 'left',
               },
               styles?.input,
               style,
@@ -412,7 +396,7 @@ export const Input: React.FC<InputProps> = ({
         
         {/* Right Icon */}
         {finalRightIcon && (
-          <View style={{ marginLeft: ms(4) }}>
+          <View className="ml-xs">
             {finalRightIcon}
           </View>
         )}
@@ -420,17 +404,15 @@ export const Input: React.FC<InputProps> = ({
       
       {/* Error/Helper Text - Matching Figma style_PN61H8 */}
       {(error || helperText) && (
-        <View style={{ marginTop: ms(4) }}>
+        <View className="mt-xs">
           <Text
+            variant="bodySmall"
+            className={`text-left lowercase ${hasError ? 'text-error-dark' : 'text-theme-text-tertiary'}`}
             style={[
               {
-                fontSize: ms(errorSize), // 14px from Figma
-                lineHeight: ms(errorLineHeight), // 1.2142857142857142em = ~17px
-                fontWeight: '400',
-                fontFamily: typography.bodySmall.fontFamily, // STC Forward
-                color: hasError ? errorTextColor : lightTheme.textTertiary, // #D81034 from Figma
-                textAlign: 'left',
-                textTransform: 'lowercase',
+                fontSize: ms(errorSize),
+                lineHeight: ms(errorLineHeight),
+                color: hasError ? errorTextColor : lightTheme.textTertiary,
               },
               styles?.errorText,
             ]}

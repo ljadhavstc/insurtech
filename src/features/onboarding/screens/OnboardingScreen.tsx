@@ -64,16 +64,9 @@ export const OnboardingScreen = () => {
         <View style={{ height: vs(46.15) }} />
         
         {/* Header */}
-        <View 
-          className="border-b border-theme-border"
-          style={{ 
-            paddingHorizontal: s(15.38), 
-            paddingTop: s(15.38),
-            paddingBottom: s(15.38) 
-          }}
-        >
+        <View className="border-b border-theme-border px-[15.38px] pt-[15.38px] pb-[15.38px]">
           <View className="flex-row justify-between items-center">
-            <View style={{ width: s(40), height: s(40) }} />
+            <View className="w-10 h-10" />
             <Text variant="onboardingHeader" className="text-theme-text-primary">
               get started
             </Text>
@@ -84,10 +77,7 @@ export const OnboardingScreen = () => {
         </View>
 
         {/* Main Content */}
-        <View 
-          className="flex-1 px-6"
-          style={{ paddingTop: vs(24), gap: vs(36) }}
-        >
+        <View className="flex-1 px-6 pt-6 gap-9">
             {/* Title Section */}
             <View className="gap-8">
               <View className="items-center">
@@ -113,9 +103,8 @@ export const OnboardingScreen = () => {
 
             {/* Buttons */}
             <View 
-              className="gap-2"
+              className="gap-sm"
               style={{ 
-                gap: s(8),
                 paddingBottom: Math.max(insets.bottom, s(16))
               }}
             >

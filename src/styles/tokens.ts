@@ -29,6 +29,8 @@ export const baseColors = {
   // Semantic colors
   success: '#28a745',
   error: '#dc3545',
+  errorLight: '#F3607A', // Lighter error color for borders
+  errorDark: '#D81034', // Darker error color for text
   warning: '#ffc107',
   info: '#17a2b8',
   

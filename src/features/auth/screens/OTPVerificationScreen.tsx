@@ -6,7 +6,7 @@
  * Matches Figma design structure with header, content card, and form fields.
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, ScrollView, KeyboardAvoidingView, Platform, StatusBar, TouchableOpacity, AppState } from 'react-native';
 import { useForm, Controller } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
@@ -18,8 +18,8 @@ import { Text } from '@/components/primitives/Text';
 import { Button } from '@/components/primitives/Button';
 import { OTPInput } from '@/components/form/OTPInput';
 import { LanguageDropdown } from '@/components/LanguageDropdown';
-import { s, vs, ms } from '@/utils/scale';
-import { lightTheme, typography } from '@/styles/tokens';
+import { vs } from '@/utils/scale';
+import { lightTheme } from '@/styles/tokens';
 import { Icon } from '@/components/icons';
 
 type AuthStackParamList = {
@@ -227,11 +227,11 @@ export const OTPVerificationScreen = () => {
   const isFormValid = otpValue.length === OTP_LENGTH && !errors.otp;
 
   return (
-    <View style={{ flex: 1, backgroundColor: lightTheme.background }}>
+    <View className="flex-1 bg-theme-background">
       <StatusBar barStyle="dark-content" backgroundColor={lightTheme.background} />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{ flex: 1 }}
+        className="flex-1"
       >
         <ScrollView
           contentContainerStyle={{ flexGrow: 1 }}
@@ -242,24 +242,12 @@ export const OTPVerificationScreen = () => {
           <View style={{ height: vs(46.15) }} />
 
           {/* Header */}
-          <View
-            className="border-b border-theme-border"
-            style={{
-              paddingHorizontal: s(15.38),
-              paddingTop: s(15.38),
-              paddingBottom: s(15.38),
-            }}
-          >
+          <View className="border-b border-theme-border px-[15.38px] pt-[15.38px] pb-[15.38px]">
             <View className="flex-row justify-between items-center">
               {/* Back Button */}
               <TouchableOpacity
                 onPress={() => navigation.goBack()}
-                style={{
-                  width: s(40),
-                  height: s(40),
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                }}
+                className="w-10 h-10 justify-center items-center"
               >
                 <Icon name="chevron-left" size={24} color={lightTheme.textPrimary} />
               </TouchableOpacity>
@@ -275,46 +263,23 @@ export const OTPVerificationScreen = () => {
           </View>
 
           {/* Content Card */}
-          <View
-            style={{
-              flex: 1,
-              backgroundColor: lightTheme.background,
-              paddingHorizontal: ms(16),
-              paddingTop: ms(16),
-            }}
-          >
+          <View className="flex-1 bg-theme-background px-md pt-md">
             {/* Card Header */}
-            <View style={{ paddingBottom: ms(8) }}>
-              <Text
-                style={{
-                  fontSize: ms(28),
-                  lineHeight: ms(32),
-                  fontWeight: '400',
-                  fontFamily: typography.h1.fontFamily,
-                  color: lightTheme.textPrimary,
-                }}
-              >
+            <View className="pb-xs">
+              <Text variant="h1" className="text-theme-text-primary">
                 {t('auth.otpVerification.title')}
               </Text>
             </View>
 
             {/* Subtitle */}
-            <View style={{ paddingBottom: ms(16) }}>
-              <Text
-                style={{
-                  fontSize: ms(14),
-                  lineHeight: ms(17),
-                  fontWeight: '400',
-                  fontFamily: typography.bodySmall.fontFamily,
-                  color: lightTheme.textSecondary,
-                }}
-              >
+            <View className="pb-md">
+              <Text variant="bodySmall" className="text-theme-text-secondary">
                 {t('auth.otpVerification.subtitle', { mobileNumber })}
               </Text>
             </View>
 
             {/* OTP Input */}
-            <View style={{ paddingTop: ms(16), paddingBottom: ms(8) }}>
+            <View className="pt-md pb-xs">
               <Controller
                 control={control}
                 name="otp"
@@ -334,8 +299,8 @@ export const OTPVerificationScreen = () => {
                     value={value || ''}
                     onChangeText={(text) => {
                       onChange(text);
-                      setErrorMessage(''); // Clear error when user types
-                      setIsSuccess(false); // Clear success when user types
+                      setErrorMessage('');
+                      setIsSuccess(false);
                     }}
                     error={errorMessage || errors.otp?.message}
                     success={isSuccess && value.length === OTP_LENGTH}
@@ -348,13 +313,7 @@ export const OTPVerificationScreen = () => {
             </View>
 
             {/* Buttons */}
-            <View
-              style={{
-                gap: ms(8),
-                paddingTop: ms(16),
-                paddingBottom: ms(16),
-              }}
-            >
+            <View className="gap-sm pt-md pb-md">
               <Button
                 variant="solid"
                 size="medium"
@@ -369,36 +328,16 @@ export const OTPVerificationScreen = () => {
             </View>
 
             {/* Resend Section - Moved below Verify button */}
-            <View style={{ paddingTop: ms(8), paddingBottom: ms(16) }}>
+            <View className="pt-xs pb-md">
               {cooldownTimer > 0 ? (
-                <View style={{ alignItems: 'center' }}>
-                  <Text
-                    style={{
-                      fontSize: ms(12),
-                      lineHeight: ms(16),
-                      fontWeight: '400',
-                      fontFamily: typography.caption.fontFamily,
-                      color: '#D81034',
-                      textAlign: 'center',
-                      textTransform: 'lowercase',
-                    }}
-                  >
+                <View className="items-center">
+                  <Text variant="caption" className="text-error-dark text-center lowercase">
                     {t('auth.otpVerification.cooldownMessage', { time: formatTime(cooldownTimer) }).toLowerCase()}
                   </Text>
                 </View>
               ) : resendTimer > 0 ? (
-                <View style={{ alignItems: 'center' }}>
-                  <Text
-                    style={{
-                      fontSize: ms(12),
-                      lineHeight: ms(16),
-                      fontWeight: '400',
-                      fontFamily: typography.caption.fontFamily,
-                      color: lightTheme.textSecondary,
-                      textAlign: 'center',
-                      textTransform: 'lowercase',
-                    }}
-                  >
+                <View className="items-center">
+                  <Text variant="caption" className="text-theme-text-secondary text-center lowercase">
                     {t('auth.otpVerification.resendTimer', { time: formatTime(resendTimer) }).toLowerCase()}
                   </Text>
                 </View>
@@ -406,18 +345,11 @@ export const OTPVerificationScreen = () => {
                 <TouchableOpacity
                   onPress={handleResend}
                   disabled={!canResend || resendLoading}
-                  style={{ alignItems: 'center' }}
+                  className="items-center"
                 >
-                  <Text
-                    style={{
-                      fontSize: ms(12),
-                      lineHeight: ms(16),
-                      fontWeight: '400',
-                      fontFamily: typography.caption.fontFamily,
-                      color: canResend ? lightTheme.interactiveActive : lightTheme.textTertiary,
-                      textAlign: 'center',
-                      textTransform: 'lowercase',
-                    }}
+                  <Text 
+                    variant="caption" 
+                    className={`text-center lowercase ${canResend ? 'text-theme-interactive-active' : 'text-theme-text-tertiary'}`}
                   >
                     {resendLoading ? t('auth.otpVerification.resending').toLowerCase() : t('auth.otpVerification.resend').toLowerCase()}
                   </Text>

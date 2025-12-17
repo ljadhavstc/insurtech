@@ -19,8 +19,9 @@ import { Pressable, View, Modal, FlatList } from 'react-native';
 import { ms } from '@/utils/scale';
 import { Text } from '../primitives/Text';
 import { Box } from '../primitives/Box';
-import { Input } from '../primitives/Input';
 import { ChevronDownIcon } from '../icons';
+import { lightTheme } from '@/styles/tokens';
+import { lightTheme } from '@/styles/tokens';
 
 export interface DropdownOption {
   label: string;
@@ -91,9 +92,8 @@ export const Dropdown: React.FC<DropdownProps> = ({
     <View className="w-full">
       {label && (
         <Text
-          size={14}
-          className="text-text-primary mb-2"
-          style={{ fontWeight: '500' }}
+          variant="label"
+          className="text-theme-text-primary mb-sm"
         >
           {label}
         </Text>
@@ -104,27 +104,23 @@ export const Dropdown: React.FC<DropdownProps> = ({
         disabled={disabled}
         className={`
           flex-row items-center justify-between
-          border ${error ? 'border-error' : 'border-border'}
-          bg-white
+          border h-12 rounded-md px-3
+          ${error ? 'border-error-light' : 'border-theme-border'}
+          bg-theme-background
           ${disabled ? 'opacity-50' : ''}
         `}
-        style={{
-          height: ms(48),
-          borderRadius: ms(8),
-          paddingHorizontal: ms(12),
-        }}
       >
         <Text
-          className={selectedOption ? 'text-text-primary' : 'text-text-tertiary'}
-          size={16}
+          variant="body"
+          className={selectedOption ? 'text-theme-text-primary' : 'text-theme-text-tertiary'}
         >
           {selectedOption?.label || placeholder}
         </Text>
-        <ChevronDownIcon width={ms(16)} height={ms(16)} color="#9CA3AF" />
+        <ChevronDownIcon width={ms(16)} height={ms(16)} color={lightTheme.textTertiary} />
       </Pressable>
       {error && (
-        <Text size={12} className="text-error mt-1">
-          {error}
+        <Text variant="caption" className="text-error-dark mt-xs lowercase">
+          {error.toLowerCase()}
         </Text>
       )}
       
@@ -139,7 +135,7 @@ export const Dropdown: React.FC<DropdownProps> = ({
           onPress={() => setIsOpen(false)}
         >
           <Pressable onPress={(e) => e.stopPropagation()}>
-            <Box className="bg-white rounded-t-xl max-h-96">
+            <Box className="bg-theme-background rounded-t-xl max-h-96">
               <FlatList
                 data={options}
                 keyExtractor={(item) => String(item.value)}
@@ -147,13 +143,13 @@ export const Dropdown: React.FC<DropdownProps> = ({
                   <Pressable
                     onPress={() => handleSelect(item.value)}
                     className={`
-                      px-4 py-3 border-b border-border
-                      ${item.value === value ? 'bg-gray-50' : ''}
+                      px-md py-3 border-b border-theme-border
+                      ${item.value === value ? 'bg-theme-background-secondary' : ''}
                     `}
                   >
                     <Text
-                      className={item.value === value ? 'text-primary font-semibold' : 'text-text-primary'}
-                      size={16}
+                      variant="body"
+                      className={item.value === value ? 'text-theme-interactive-active font-semibold' : 'text-theme-text-primary'}
                     >
                       {item.label}
                     </Text>

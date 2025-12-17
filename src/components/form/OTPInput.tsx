@@ -6,46 +6,17 @@
  */
 
 import React, { useRef, useState, useEffect } from 'react';
-import { View, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
-import { ms } from '@/utils/scale';
-import { lightTheme, typography } from '@/styles/tokens';
+import { View, TextInput, TouchableOpacity } from 'react-native';
 import { Text } from '../primitives/Text';
-import { t } from 'i18next';
+import { useTranslation } from 'react-i18next';
 
 export interface OTPInputProps {
-  /**
-   * OTP value (4 digits)
-   */
   value: string;
-  
-  /**
-   * Callback when OTP changes
-   */
   onChangeText: (value: string) => void;
-  
-  /**
-   * Error message to display
-   */
   error?: string;
-  
-  /**
-   * Success state - shows success styling when OTP is valid
-   */
   success?: boolean;
-  
-  /**
-   * Disabled state
-   */
   disabled?: boolean;
-  
-  /**
-   * Auto focus on mount
-   */
   autoFocus?: boolean;
-  
-  /**
-   * Test ID for testing
-   */
   testID?: string;
 }
 
@@ -60,10 +31,11 @@ export const OTPInput: React.FC<OTPInputProps> = ({
   autoFocus = false,
   testID,
 }) => {
+  const { t } = useTranslation();
   const [focusedIndex, setFocusedIndex] = useState<number | null>(autoFocus ? 0 : null);
   const inputRefs = useRef<(TextInput | null)[]>([]);
 
-  // Ensure value is exactly 6 digits
+  // Ensure value is exactly 4 digits
   const otpDigits = value.padEnd(OTP_LENGTH, ' ').split('').slice(0, OTP_LENGTH);
 
   useEffect(() => {
@@ -135,8 +107,8 @@ export const OTPInput: React.FC<OTPInputProps> = ({
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.inputContainer}>
+    <View className="w-full items-start">
+      <View className="flex-row items-center gap-1 pt-1 px-2 pb-1">
         {otpDigits.map((digit, index) => {
           const isFocused = focusedIndex === index;
           const hasError = !!error;
@@ -148,13 +120,18 @@ export const OTPInput: React.FC<OTPInputProps> = ({
               key={index}
               onPress={() => !disabled && handleBoxPress(index)}
               activeOpacity={0.7}
-              style={[
-                styles.digitBox,
-                isFocused && !hasSuccess && !hasError && styles.digitBoxFocused,
-                hasError && styles.digitBoxError,
-                hasSuccess && styles.digitBoxSuccess,
-                disabled && styles.digitBoxDisabled,
-              ]}
+              className={`
+                w-[50px] h-[64px] 
+                border border-theme-border 
+                rounded-sm 
+                bg-theme-background 
+                justify-center items-center 
+                relative
+                ${isFocused && !hasSuccess && !hasError ? 'border-2 border-theme-interactive-active' : ''}
+                ${hasError ? 'border-error-light' : ''}
+                ${hasSuccess ? 'border-2 border-success' : ''}
+                ${disabled ? 'opacity-50' : ''}
+              `}
             >
               <TextInput
                 ref={(ref) => {
@@ -169,20 +146,12 @@ export const OTPInput: React.FC<OTPInputProps> = ({
                 maxLength={1}
                 editable={!disabled}
                 selectTextOnFocus
-                style={styles.input}
+                className="absolute w-full h-full opacity-0 text-center text-h1"
                 testID={testID ? `${testID}-${index}` : undefined}
               />
               {!isEmpty && (
-                <View style={styles.digitText}>
-                  <Text
-                    style={{
-                      fontSize: ms(24),
-                      lineHeight: ms(32),
-                      fontWeight: '400',
-                      fontFamily: typography.h1.fontFamily,
-                      color: lightTheme.textPrimary,
-                    }}
-                  >
+                <View className="justify-center items-center">
+                  <Text variant="h1" className="text-theme-text-primary">
                     {digit}
                   </Text>
                 </View>
@@ -193,34 +162,16 @@ export const OTPInput: React.FC<OTPInputProps> = ({
       </View>
 
       {error && (
-        <View style={styles.errorContainer}>
-          <Text
-            style={{
-              fontSize: ms(12),
-              lineHeight: ms(16),
-              fontWeight: '400',
-              fontFamily: typography.caption.fontFamily,
-              color: '#D81034',
-              textTransform: 'lowercase',
-            }}
-          >
+        <View className="mt-2">
+          <Text variant="caption" className="text-error-dark lowercase">
             {error.toLowerCase()}
           </Text>
         </View>
       )}
       
       {success && value.length === OTP_LENGTH && !error && (
-        <View style={styles.successContainer}>
-          <Text
-            style={{
-              fontSize: ms(12),
-              lineHeight: ms(16),
-              fontWeight: '400',
-              fontFamily: typography.caption.fontFamily,
-              color: '#28A745',
-              textTransform: 'lowercase',
-            }}
-          >
+        <View className="mt-2">
+          <Text variant="caption" className="text-success">
             {t('auth.otpVerification.success')}
           </Text>
         </View>
@@ -228,66 +179,6 @@ export const OTPInput: React.FC<OTPInputProps> = ({
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    width: '100%',
-    alignItems: 'flex-start',
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    justifyContent: 'flex-start',
-    alignItems: 'center',
-    gap: ms(4),
-    paddingTop: ms(4),
-    paddingRight: ms(8),
-    paddingBottom: ms(4),
-    paddingLeft: ms(8),
-  },
-  digitBox: {
-    width: ms(50),
-    height: ms(64),
-    borderWidth: 1,
-    borderColor: lightTheme.border, // #DFE0E6 - var(--border-base-tertiary)
-    borderRadius: ms(2),
-    backgroundColor: lightTheme.background,
-    justifyContent: 'center',
-    alignItems: 'center',
-    position: 'relative',
-  },
-  digitBoxFocused: {
-    borderColor: lightTheme.interactiveActive,
-    borderWidth: 2,
-  },
-  digitBoxError: {
-    borderColor: '#F3607A',
-  },
-  digitBoxSuccess: {
-    borderColor: '#28A745',
-    borderWidth: 2,
-  },
-  digitBoxDisabled: {
-    opacity: 0.5,
-  },
-  input: {
-    position: 'absolute',
-    width: '100%',
-    height: '100%',
-    opacity: 0,
-    fontSize: ms(24),
-    textAlign: 'center',
-  },
-  digitText: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  errorContainer: {
-    marginTop: ms(8),
-  },
-  successContainer: {
-    marginTop: ms(8),
-  },
-});
 
 export default OTPInput;
 

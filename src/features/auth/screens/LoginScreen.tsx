@@ -18,8 +18,8 @@ import { Text } from '@/components/primitives/Text';
 import { Button } from '@/components/primitives/Button';
 import { FormField } from '@/components/form/FormField';
 import { LanguageDropdown } from '@/components/LanguageDropdown';
-import { s, vs, ms } from '@/utils/scale';
-import { lightTheme, typography } from '@/styles/tokens';
+import { vs } from '@/utils/scale';
+import { lightTheme } from '@/styles/tokens';
 import { Icon } from '@/components/icons';
 
 type AuthStackParamList = {
@@ -91,11 +91,11 @@ export const LoginScreen = () => {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: lightTheme.background }}>
+    <View className="flex-1 bg-theme-background">
       <StatusBar barStyle="dark-content" backgroundColor={lightTheme.background} />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{ flex: 1 }}
+        className="flex-1"
       >
         <ScrollView
           contentContainerStyle={{ flexGrow: 1 }}
@@ -106,24 +106,12 @@ export const LoginScreen = () => {
           <View style={{ height: vs(46.15) }} />
           
           {/* Header */}
-          <View 
-            className="border-b border-theme-border"
-            style={{ 
-              paddingHorizontal: s(15.38), 
-              paddingTop: s(15.38),
-              paddingBottom: s(15.38) 
-            }}
-          >
+          <View className="border-b border-theme-border px-[15.38px] pt-[15.38px] pb-[15.38px]">
             <View className="flex-row justify-between items-center">
               {/* Back Button */}
               <TouchableOpacity
                 onPress={() => navigation.goBack()}
-                style={{
-                  width: s(40),
-                  height: s(40),
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                }}
+                className="w-10 h-10 justify-center items-center"
               >
                 <Icon 
                   name="chevron-left" 
@@ -143,31 +131,16 @@ export const LoginScreen = () => {
           </View>
 
           {/* Content Card */}
-          <View
-            style={{
-              flex: 1,
-              backgroundColor: lightTheme.background,
-              paddingHorizontal: ms(16),
-              paddingTop: ms(16),
-            }}
-          >
+          <View className="flex-1 bg-theme-background px-md pt-md">
             {/* Card Header */}
-            <View style={{ paddingBottom: ms(8) }}>
-              <Text
-                style={{
-                  fontSize: ms(28),
-                  lineHeight: ms(32), // 28 * 1.142857
-                  fontWeight: '400',
-                  fontFamily: typography.h1.fontFamily,
-                  color: lightTheme.textPrimary,
-                }}
-              >
+            <View className="pb-xs">
+              <Text variant="h1" className="text-theme-text-primary">
                 {t('auth.login.title')}
               </Text>
             </View>
 
             {/* Form Fields */}
-            <View style={{ gap: ms(16), paddingTop: ms(16) }}>
+            <View className="gap-md pt-md">
               <FormField
                 control={control}
                 name="phoneNumber"
@@ -188,13 +161,7 @@ export const LoginScreen = () => {
             </View>
 
             {/* Buttons */}
-            <View
-              style={{
-                gap: ms(8),
-                paddingTop: ms(16),
-                paddingBottom: ms(16),
-              }}
-            >
+            <View className="gap-sm pt-md pb-md">
               <Button
                 variant="solid"
                 size="medium"

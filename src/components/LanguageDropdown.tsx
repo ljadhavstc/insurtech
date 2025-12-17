@@ -13,9 +13,7 @@
 import React, { useState } from 'react';
 import { Pressable, Modal, FlatList, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { s, ms } from '@/utils/scale';
 import { Text } from './primitives/Text';
-import { lightTheme, typography } from '@/styles/tokens';
 
 const languages = [
   { code: 'en', label: 'English' },
@@ -39,12 +37,7 @@ export const LanguageDropdown: React.FC = () => {
     <>
       <Pressable
         onPress={() => setIsOpen(true)}
-        style={{
-          minWidth: s(40),
-          minHeight: s(40),
-          justifyContent: 'center',
-          alignItems: 'center',
-        }}
+        className="min-w-10 min-h-10 justify-center items-center"
       >
         <Text variant="onboardingHeader" className="text-brand-red">
           {displayLabel}
@@ -58,45 +51,27 @@ export const LanguageDropdown: React.FC = () => {
         onRequestClose={() => setIsOpen(false)}
       >
         <Pressable
-          style={{
-            flex: 1,
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
-            justifyContent: 'flex-end',
-          }}
+          className="flex-1 bg-black/50 justify-end"
           onPress={() => setIsOpen(false)}
         >
           <Pressable onPress={(e) => e.stopPropagation()}>
-            <View
-              style={{
-                backgroundColor: lightTheme.background,
-                borderTopLeftRadius: ms(16),
-                borderTopRightRadius: ms(16),
-                maxHeight: ms(300),
-                paddingVertical: ms(8),
-              }}
-            >
+            <View className="bg-theme-background rounded-t-2xl max-h-[300px] py-xs">
               <FlatList
                 data={languages}
                 keyExtractor={(item) => item.code}
                 renderItem={({ item }) => (
                   <Pressable
                     onPress={() => handleSelect(item.code)}
-                    style={{
-                      paddingHorizontal: ms(16),
-                      paddingVertical: ms(12),
-                      borderBottomWidth: 1,
-                      borderBottomColor: lightTheme.border,
-                      backgroundColor: item.code === i18n.language ? lightTheme.backgroundSecondary : 'transparent',
-                    }}
+                    className={`
+                      px-md py-3 border-b border-theme-border
+                      ${item.code === i18n.language ? 'bg-theme-background-secondary' : 'bg-transparent'}
+                    `}
                   >
                     <Text
-                      style={{
-                        fontSize: ms(16),
-                        lineHeight: ms(20),
-                        fontWeight: item.code === i18n.language ? '600' : '400',
-                        fontFamily: typography.body.fontFamily,
-                        color: item.code === i18n.language ? lightTheme.interactiveActive : lightTheme.textPrimary,
-                      }}
+                      variant="body"
+                      className={`
+                        ${item.code === i18n.language ? 'text-theme-interactive-active font-semibold' : 'text-theme-text-primary'}
+                      `}
                     >
                       {item.label}
                     </Text>

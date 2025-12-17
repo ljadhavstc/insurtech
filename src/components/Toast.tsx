@@ -85,12 +85,11 @@ const ToastItem: React.FC<{ toast: Toast; onHide: (id: string) => void }> = ({ t
 
   return (
     <Box
-      className={`${styles.bg} ${styles.text} mb-2`}
+      className={`${styles.bg} ${styles.text} mb-sm rounded-md min-w-[200px]`}
       px={16}
       py={12}
-      style={{ borderRadius: ms(8), minWidth: ms(200) }}
     >
-      <Text size={14} className={styles.text} style={{ fontWeight: '500' }}>
+      <Text variant="bodySmall" className={`${styles.text} font-medium`}>
         {toast.message}
       </Text>
     </Box>

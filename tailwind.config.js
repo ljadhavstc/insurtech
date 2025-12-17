@@ -39,6 +39,8 @@ module.exports = {
         'secondary-light': baseColors.secondaryLight,
         success: baseColors.success,
         error: baseColors.error,
+        'error-light': baseColors.errorLight,
+        'error-dark': baseColors.errorDark,
         warning: baseColors.warning,
         info: baseColors.info,
         white: baseColors.white,
