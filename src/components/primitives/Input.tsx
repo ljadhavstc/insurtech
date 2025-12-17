@@ -371,11 +371,12 @@ export const Input: React.FC<InputProps> = ({
                   fontFamily: typography.caption.fontFamily,
                   color: labelColor,
                   textAlign: 'left',
+                  textTransform: 'lowercase',
                 },
                 styles?.label,
               ]}
             >
-              {label}
+              {label.toLowerCase()}
             </Text>
           )}
           
@@ -429,11 +430,12 @@ export const Input: React.FC<InputProps> = ({
                 fontFamily: typography.bodySmall.fontFamily, // STC Forward
                 color: hasError ? errorTextColor : lightTheme.textTertiary, // #D81034 from Figma
                 textAlign: 'left',
+                textTransform: 'lowercase',
               },
               styles?.errorText,
             ]}
           >
-            {error || helperText}
+            {(error || helperText)?.toLowerCase()}
           </Text>
         </View>
       )}

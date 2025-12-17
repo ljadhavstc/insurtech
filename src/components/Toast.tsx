@@ -62,7 +62,7 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     <ToastContext.Provider value={{ showToast, hideToast }}>
       {children}
       <View
-        className="absolute top-12 left-0 right-0 items-center z-50"
+        className="absolute bottom-12 left-0 right-0 items-center z-50"
         pointerEvents="box-none"
       >
         {toasts.map((toast) => (

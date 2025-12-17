@@ -35,22 +35,32 @@
       "passwordsMatch": "Passwords do not match"
     },
     "forgotPassword": {
-      "title": "Forgot Password",
-      "subtitle": "Enter your email to receive an OTP",
-      "email": "Email",
-      "sendOTP": "Send OTP",
+      "title": "get your code",
+      "screenTitle": "reset your password",
+      "screenSubtitle": "enter your mobile number to get a code",
+      "mobileNumber": "Mobile Number",
+      "sendCode": "Send Code",
       "backToLogin": "Back to Login",
-      "emailRequired": "Email is required",
-      "emailInvalid": "Please enter a valid email"
+      "mobileNumberRequired": "Mobile number is required",
+      "mobileNumberInvalid": "Please enter a valid mobile number",
+      "mobileNumberPlaceholder": "eg. 33011234"
     },
     "otpVerification": {
-      "title": "Verify OTP",
-      "subtitle": "Enter the 6-digit code sent to your email",
+      "screenTitle": "verify code",
+      "title": "enter verification code",
+      "subtitle": "enter the 4-digit code sent to {{mobileNumber}}",
       "otp": "OTP Code",
-      "verify": "Verify",
-      "resend": "Resend OTP",
-      "otpRequired": "OTP is required",
-      "otpInvalid": "Please enter a valid 6-digit OTP"
+      "verify": "verify",
+      "resend": "Resend Code",
+      "resending": "Resending...",
+      "otpResent": "Code has been resent",
+      "resendFailed": "Failed to resend code",
+      "resendTimer": "Resend code in {{time}}",
+      "cooldownMessage": "Too many failed attempts. Please wait {{time}} before requesting a new code.",
+      "otpRequired": "Verification code is required",
+      "otpInvalid": "Please enter a valid 4-digit code",
+      "invalidOTP": "Invalid code. Please try again.",
+      "success": "OTP code has been entered successfully."
     },
     "resetPassword": {
       "title": "Reset Password",

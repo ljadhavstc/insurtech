@@ -9,8 +9,18 @@
 
 import api from './api';
 
+// OTP and cooldown tracking
+interface OTPData {
+  otp: string;
+  expiresAt: number; // Timestamp when OTP expires
+  sentAt: number; // Timestamp when OTP was sent
+  wrongAttempts: number; // Count of wrong OTP attempts
+  cooldownUntil?: number; // Timestamp when cooldown ends
+  lastResendAt?: number; // Timestamp of last resend
+}
+
 // Mock data storage
-const mockUsers: Record<string, { email: string; phoneNumber?: string; password: string; otp?: string }> = {
+const mockUsers: Record<string, { email: string; phoneNumber?: string; password: string }> = {
   'user@example.com': {
     email: 'user@example.com',
     phoneNumber: '33011234',
@@ -22,9 +32,24 @@ const mockUsers: Record<string, { email: string; phoneNumber?: string; password:
     phoneNumber: '33011234',
     password: 'Password123',
   },
+  // Test mobile number for OTP testing
+  '12345678': {
+    email: 'testmobile@example.com',
+    phoneNumber: '12345678',
+    password: 'Test1234',
+  },
 };
 
 const mockTokens: Record<string, { token: string; refreshToken: string }> = {};
+
+// OTP storage: key is mobile number or email
+const otpData: Record<string, OTPData> = {};
+
+// Constants
+const OTP_EXPIRY_TIME = 10 * 60 * 1000; // 10 minutes
+const RESEND_COOLDOWN = 60 * 1000; // 60 seconds
+const MAX_WRONG_ATTEMPTS = 3;
+const COOLDOWN_PERIOD = 5 * 60 * 1000; // 5 minutes
 
 // Generate mock token
 const generateToken = (email: string): { token: string; refreshToken: string } => {
@@ -99,50 +124,136 @@ export const mockRegister = async (email: string, password: string, name: string
 
 /**
  * Mock forgot password endpoint - sends OTP
+ * Supports both email and mobile number
  */
-export const mockForgotPassword = async (email: string) => {
+export const mockForgotPassword = async (emailOrMobile: string) => {
   await delay(800);
 
-  if (!mockUsers[email]) {
-    // Don't reveal if user exists (security best practice)
-    return {
-      success: true,
-      message: 'If an account exists, an OTP has been sent to your email.',
-    };
+  const now = Date.now();
+  const identifier = emailOrMobile;
+
+  // Check if user exists (by email or phoneNumber)
+  let user = mockUsers[emailOrMobile];
+  if (!user) {
+    // Search by phoneNumber
+    const foundUser = Object.values(mockUsers).find(
+      (u) => u.phoneNumber === emailOrMobile
+    );
+    if (foundUser) {
+      user = foundUser;
+    }
   }
 
-  // Generate 6-digit OTP
-  const otp = Math.floor(100000 + Math.random() * 900000).toString();
-  mockUsers[email].otp = otp;
+  // Check cooldown period
+  const existingOTP = otpData[identifier];
+  if (existingOTP?.cooldownUntil && now < existingOTP.cooldownUntil) {
+    const remainingSeconds = Math.ceil((existingOTP.cooldownUntil - now) / 1000);
+    throw new Error(`Please wait ${Math.ceil(remainingSeconds / 60)} minutes before requesting a new OTP`);
+  }
+
+  // Check resend cooldown (60 seconds)
+  if (existingOTP?.lastResendAt && (now - existingOTP.lastResendAt) < RESEND_COOLDOWN) {
+    const remainingSeconds = Math.ceil((RESEND_COOLDOWN - (now - existingOTP.lastResendAt)) / 1000);
+    throw new Error(`Please wait ${remainingSeconds} seconds before resending OTP`);
+  }
+
+  // Generate 4-digit OTP
+  // For test mobile number (12345678), use a fixed OTP for easy testing
+  const isTestNumber = identifier === '12345678';
+  const otp = isTestNumber ? '1234' : Math.floor(1000 + Math.random() * 9000).toString();
+  
+  // Store OTP data
+  otpData[identifier] = {
+    otp,
+    expiresAt: now + OTP_EXPIRY_TIME,
+    sentAt: now,
+    wrongAttempts: existingOTP?.wrongAttempts || 0,
+    lastResendAt: now,
+  };
+
+  // Reset cooldown if it was set
+  if (existingOTP?.cooldownUntil) {
+    delete otpData[identifier].cooldownUntil;
+  }
 
   // In real app, send OTP via email/SMS
-  console.log(`[MOCK] OTP for ${email}: ${otp}`);
+  if (isTestNumber) {
+    console.log(`[MOCK] ✅ Test OTP for ${identifier}: ${otp} (Use this code for testing)`);
+    console.log(`[MOCK] 📱 Test mobile number: 12345678 | OTP: 1234`);
+  } else {
+    console.log(`[MOCK] OTP for ${identifier}: ${otp}`);
+  }
 
+  // Don't reveal if user exists (security best practice)
   return {
     success: true,
-    message: 'OTP sent to your email',
+    message: 'If an account exists, an OTP has been sent.',
     otp, // Only for development - remove in production
+    resendCooldown: RESEND_COOLDOWN / 1000, // seconds
   };
 };
 
 /**
  * Mock OTP verification endpoint
+ * Supports both email and mobile number
  */
-export const mockVerifyOTP = async (email: string, otp: string) => {
+export const mockVerifyOTP = async (emailOrMobile: string, otp: string) => {
   await delay(600);
 
-  const user = mockUsers[email];
-  if (!user || user.otp !== otp) {
-    throw new Error('Invalid or expired OTP');
+  const now = Date.now();
+  const identifier = emailOrMobile;
+  const otpInfo = otpData[identifier];
+
+  // Check if OTP exists
+  if (!otpInfo) {
+    throw new Error('No OTP found. Please request a new OTP.');
   }
 
-  // Clear OTP after verification
-  delete user.otp;
+  // Check cooldown period
+  if (otpInfo.cooldownUntil && now < otpInfo.cooldownUntil) {
+    const remainingSeconds = Math.ceil((otpInfo.cooldownUntil - now) / 1000);
+    throw new Error(`Too many failed attempts. Please wait ${Math.ceil(remainingSeconds / 60)} minutes before trying again.`);
+  }
+
+  // Check if OTP expired
+  if (now > otpInfo.expiresAt) {
+    delete otpData[identifier];
+    throw new Error('OTP has expired. Please request a new OTP.');
+  }
+
+  // Verify OTP
+  if (otpInfo.otp !== otp) {
+    otpInfo.wrongAttempts += 1;
+
+    // If wrong attempts exceed limit, set cooldown
+    if (otpInfo.wrongAttempts >= MAX_WRONG_ATTEMPTS) {
+      otpInfo.cooldownUntil = now + COOLDOWN_PERIOD;
+      const remainingMinutes = Math.ceil(COOLDOWN_PERIOD / 60000);
+      throw new Error(`Too many failed attempts. Please wait ${remainingMinutes} minutes before requesting a new OTP.`);
+    }
+
+    const remainingAttempts = MAX_WRONG_ATTEMPTS - otpInfo.wrongAttempts;
+    throw new Error(`Invalid OTP. ${remainingAttempts} attempt${remainingAttempts !== 1 ? 's' : ''} remaining.`);
+  }
+
+  // Find user by identifier
+  let user = mockUsers[identifier];
+  if (!user) {
+    const foundUser = Object.values(mockUsers).find(
+      (u) => u.phoneNumber === identifier
+    );
+    if (foundUser) {
+      user = foundUser;
+    }
+  }
+
+  // Clear OTP after successful verification
+  delete otpData[identifier];
 
   return {
     success: true,
     message: 'OTP verified successfully',
-    resetToken: `reset_token_${email}_${Date.now()}`,
+    resetToken: `reset_token_${identifier}_${Date.now()}`,
   };
 };
 
@@ -163,7 +274,11 @@ export const mockResetPassword = async (email: string, resetToken: string, newPa
   }
 
   user.password = newPassword;
-  delete user.otp;
+  
+  // Clear OTP data if exists
+  if (otpData[email]) {
+    delete otpData[email];
+  }
 
   return {
     success: true,
@@ -192,33 +307,70 @@ export const mockRefreshToken = async (refreshToken: string) => {
 
 // Override axios methods for development
 if (__DEV__) {
-  // Intercept API calls and route to mock functions
-  const originalPost = api.post;
+  // Store original post method
+  const originalPost = api.post.bind(api);
   
-  api.post = async (url: string, data?: any): Promise<any> => {
-    if (url.includes('/auth/login')) {
-      // Support both email and phoneNumber login
-      const identifier = data.phoneNumber || data.email;
-      return { data: await mockLogin(identifier, data.password) };
-    }
-    if (url.includes('/auth/register')) {
-      return { data: await mockRegister(data.email, data.password, data.name) };
-    }
-    if (url.includes('/auth/forgot-password')) {
-      return { data: await mockForgotPassword(data.email) };
-    }
-    if (url.includes('/auth/otp-verify')) {
-      return { data: await mockVerifyOTP(data.email, data.otp) };
-    }
-    if (url.includes('/auth/reset-password')) {
-      return { data: await mockResetPassword(data.email, data.resetToken, data.newPassword) };
-    }
-    if (url.includes('/auth/refresh')) {
-      return { data: await mockRefreshToken(data.refreshToken) };
+  // Override post method to intercept auth endpoints
+  api.post = async function(url: string, data?: any, config?: any): Promise<any> {
+    // Check if this is an auth endpoint we should mock
+    const isAuthEndpoint = url.includes('/auth/');
+    
+    if (isAuthEndpoint) {
+      try {
+        let mockResponse;
+        
+        if (url.includes('/auth/login')) {
+          const identifier = data?.phoneNumber || data?.email;
+          mockResponse = await mockLogin(identifier, data?.password);
+        } else if (url.includes('/auth/register')) {
+          mockResponse = await mockRegister(data?.email, data?.password, data?.name);
+        } else if (url.includes('/auth/forgot-password')) {
+          const identifier = data?.mobileNumber || data?.email || data?.phoneNumber;
+          if (!identifier) {
+            throw new Error('Mobile number or email is required');
+          }
+          mockResponse = await mockForgotPassword(identifier);
+        } else if (url.includes('/auth/otp-verify')) {
+          const identifier = data?.mobileNumber || data?.email || data?.phoneNumber;
+          if (!identifier || !data?.otp) {
+            throw new Error('Mobile number/email and OTP are required');
+          }
+          mockResponse = await mockVerifyOTP(identifier, data.otp);
+        } else if (url.includes('/auth/reset-password')) {
+          mockResponse = await mockResetPassword(data?.email || data?.mobileNumber, data?.resetToken, data?.newPassword);
+        } else if (url.includes('/auth/refresh')) {
+          mockResponse = await mockRefreshToken(data?.refreshToken);
+        } else {
+          // Unknown auth endpoint, use original
+          return originalPost(url, data, config);
+        }
+        
+        // Return mock response in axios format
+        return Promise.resolve({
+          data: mockResponse,
+          status: 200,
+          statusText: 'OK',
+          headers: {},
+          config: config || {},
+        });
+      } catch (error: any) {
+        // Return error in axios format
+        return Promise.reject({
+          response: {
+            data: { message: error.message },
+            status: 400,
+            statusText: 'Bad Request',
+          },
+          message: error.message,
+        });
+      }
     }
     
-    return originalPost(url, data);
+    // For non-auth endpoints, use original post method
+    return originalPost(url, data, config);
   };
+  
+  console.log('[MOCK SERVER] Initialized - Auth endpoints are being mocked');
 }
 
 export default {

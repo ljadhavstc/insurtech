@@ -2,21 +2,24 @@
  * Forgot Password Screen
  * 
  * Screen for requesting password reset OTP.
+ * Matches Figma design structure with header, content card, and form fields.
  */
 
 import React, { useState } from 'react';
-import { View, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, ScrollView, KeyboardAvoidingView, Platform, StatusBar, TouchableOpacity } from 'react-native';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import api from '@/services/api';
 import { useToast } from '@/components/Toast';
-import { Box } from '@/components/primitives/Box';
 import { Text } from '@/components/primitives/Text';
 import { Button } from '@/components/primitives/Button';
 import { FormField } from '@/components/form/FormField';
-import { Spacer } from '@/components/primitives/Spacer';
+import { LanguageDropdown } from '@/components/LanguageDropdown';
+import { s, vs, ms } from '@/utils/scale';
+import { lightTheme, typography } from '@/styles/tokens';
+import { Icon } from '@/components/icons';
 
 type AuthStackParamList = {
   Login: undefined;
@@ -25,7 +28,6 @@ type AuthStackParamList = {
 };
 
 type ForgotPasswordScreenNavigationProp = StackNavigationProp<AuthStackParamList, 'ForgotPassword'>;
-type ForgotPasswordScreenRouteProp = RouteProp<AuthStackParamList, 'ForgotPassword'>;
 
 type ForgotPasswordFormData = {
   email: string;
@@ -34,7 +36,6 @@ type ForgotPasswordFormData = {
 export const ForgotPasswordScreen = () => {
   const { t } = useTranslation();
   const navigation = useNavigation<ForgotPasswordScreenNavigationProp>();
-  const route = useRoute<ForgotPasswordScreenRouteProp>();
   const { showToast } = useToast();
   const [loading, setLoading] = useState(false);
 
@@ -42,13 +43,21 @@ export const ForgotPasswordScreen = () => {
     control,
     handleSubmit,
     formState: { errors },
-    getValues,
+    watch,
   } = useForm<ForgotPasswordFormData>({
     defaultValues: {
-      email: route.params?.email || '',
+      email: '',
     },
     mode: 'onBlur',
+    reValidateMode: 'onChange',
   });
+
+  const email = watch('email');
+  
+  // Check if form is valid
+  const hasValue = email && email.trim() !== '';
+  const hasErrors = Object.keys(errors).length > 0;
+  const isFormValid = hasValue && !hasErrors;
 
   const onSubmit = async (data: ForgotPasswordFormData) => {
     try {
@@ -57,10 +66,13 @@ export const ForgotPasswordScreen = () => {
         email: data.email,
       });
 
-      showToast({ type: 'success', message: response.data.message || 'OTP sent to your email' });
+      showToast({ type: 'success', message: response.data.message || 'Code sent successfully' });
       
       // Navigate to OTP verification screen
-      navigation.navigate('OTPVerification', { email: data.email });
+      navigation.navigate('OTPVerification', { 
+        mobileNumber: data.email, // Using email field for mobile number
+        purpose: 'password-reset' 
+      });
     } catch (error: any) {
       showToast({
         type: 'error',
@@ -72,61 +84,149 @@ export const ForgotPasswordScreen = () => {
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      className="flex-1 bg-white"
-    >
-      <ScrollView
-        contentContainerStyle={{ flexGrow: 1 }}
-        keyboardShouldPersistTaps="handled"
+    <View style={{ flex: 1, backgroundColor: lightTheme.background }}>
+      <StatusBar barStyle="dark-content" backgroundColor={lightTheme.background} />
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{ flex: 1 }}
       >
-        <Box className="flex-1 justify-center px-6" p={24}>
-          <Text variant="h1" className="text-theme-text-primary mb-2">
-            {t('auth.forgotPassword.title')}
-          </Text>
-          <Text variant="body" className="text-theme-text-secondary mb-8">
-            {t('auth.forgotPassword.subtitle')}
-          </Text>
-
-          <FormField
-            control={control}
-            name="email"
-            label={t('auth.forgotPassword.email')}
-            placeholder={t('auth.forgotPassword.email')}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            autoComplete="email"
-            testID="forgot-password-email-input"
-            rules={{
-              required: 'Email is required',
-              pattern: {
-                value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                message: 'Please enter a valid email',
-              },
+        <ScrollView
+          contentContainerStyle={{ flexGrow: 1 }}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Status Bar Area - Design includes 46.15px status bar */}
+          <View style={{ height: vs(46.15) }} />
+          
+          {/* Header */}
+          <View 
+            className="border-b border-theme-border"
+            style={{ 
+              paddingHorizontal: s(15.38), 
+              paddingTop: s(15.38),
+              paddingBottom: s(15.38) 
             }}
-          />
-          <Spacer height={24} />
-
-          <Button
-            onPress={handleSubmit(onSubmit)}
-            loading={loading}
-            fullWidth
-            testID="forgot-password-button"
           >
-            {t('auth.forgotPassword.sendOTP')}
-          </Button>
-          <Spacer height={16} />
+            <View className="flex-row justify-between items-center">
+              {/* Back Button */}
+              <TouchableOpacity
+                onPress={() => navigation.goBack()}
+                style={{
+                  width: s(40),
+                  height: s(40),
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}
+              >
+                <Icon 
+                  name="chevron-left" 
+                  size={24} 
+                  color={lightTheme.textPrimary} 
+                />
+              </TouchableOpacity>
+              
+              {/* Title */}
+              <Text variant="onboardingHeader" className="text-theme-text-primary">
+                {t('auth.forgotPassword.screenTitle')}
+              </Text>
+              
+              {/* Language Dropdown */}
+              <LanguageDropdown />
+            </View>
+          </View>
 
-          <Text
-            variant="bodySmall"
-            className="text-primary text-center"
-            onPress={() => navigation.navigate('Login')}
+          {/* Content Card */}
+          <View
+            style={{
+              flex: 1,
+              backgroundColor: lightTheme.background,
+              paddingHorizontal: ms(16),
+              paddingTop: ms(16),
+            }}
           >
-            {t('auth.forgotPassword.backToLogin')}
-          </Text>
-        </Box>
-      </ScrollView>
-    </KeyboardAvoidingView>
+            {/* Card Header */}
+            <View style={{ paddingBottom: ms(8) }}>
+              <Text
+                style={{
+                  fontSize: ms(28),
+                  lineHeight: ms(32), // 28 * 1.142857
+                  fontWeight: '400',
+                  fontFamily: typography.h1.fontFamily,
+                  color: lightTheme.textPrimary,
+                }}
+              >
+                {t('auth.forgotPassword.title')}
+              </Text>
+            </View>
+
+            {/* Subtitle */}
+            <View style={{ paddingBottom: ms(16) }}>
+              <Text
+                style={{
+                  fontSize: ms(14),
+                  lineHeight: ms(17), // 14 * 1.2142857142857142
+                  fontWeight: '400',
+                  fontFamily: typography.bodySmall.fontFamily,
+                  color: lightTheme.textSecondary,
+                }}
+              >
+                {t('auth.forgotPassword.screenSubtitle')}
+              </Text>
+            </View>
+
+            {/* Form Fields */}
+            <View style={{ gap: ms(16), paddingTop: ms(16) }}>
+              <FormField
+                control={control}
+                name="email"
+                variant="mobile"
+                label={t('auth.forgotPassword.mobileNumber')}
+                placeholder={t('auth.forgotPassword.mobileNumberPlaceholder')}
+                testID="forgot-password-mobile-input"
+                rules={{
+                  required: 'Mobile number is required',
+                  pattern: {
+                    value: /^[0-9]{8,15}$/,
+                    message: 'mobile number is invalid',
+                  },
+                }}
+              />
+            </View>
+
+            {/* Buttons */}
+            <View
+              style={{
+                gap: ms(8),
+                paddingTop: ms(16),
+                paddingBottom: ms(16),
+              }}
+            >
+              <Button
+                variant="solid"
+                size="medium"
+                onPress={handleSubmit(onSubmit)}
+                loading={loading}
+                disabled={!isFormValid}
+                fullWidth
+                testID="forgot-password-button"
+              >
+                {t('auth.forgotPassword.sendCode')}
+              </Button>
+
+              <Button
+                variant="ghost"
+                size="medium"
+                onPress={() => navigation.navigate('Login')}
+                fullWidth
+                testID="back-to-login-button"
+              >
+                {t('auth.forgotPassword.backToLogin')}
+              </Button>
+            </View>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </View>
   );
 };
 
