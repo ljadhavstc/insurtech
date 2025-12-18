@@ -27,6 +27,7 @@ import { Icon } from '@/components/icons';
 
 type AuthStackParamList = {
   ResetPassword: { mobileNumber?: string; email?: string; resetToken: string };
+  Success: { message?: string };
   Login: undefined;
 };
 
@@ -104,11 +105,11 @@ export const ResetPasswordScreen = () => {
   const isFormValid = useMemo(() => {
     const hasNewPassword = newPassword && newPassword.length > 0;
     const hasConfirmPassword = confirmPassword && confirmPassword.length > 0;
-    const noErrors = !errors.newPassword && !errors.confirmPassword;
     const passwordsMatchValue = newPassword === confirmPassword;
     const passwordIsStrong = canProceedWithPassword; // Only allow proceed when strength is "strong"
-    return hasNewPassword && hasConfirmPassword && noErrors && passwordsMatchValue && passwordIsStrong;
-  }, [newPassword, confirmPassword, errors, canProceedWithPassword]);
+    const passwordValid = validatePassword(newPassword) === undefined;
+    return hasNewPassword && hasConfirmPassword && passwordsMatchValue && passwordIsStrong && passwordValid;
+  }, [newPassword, confirmPassword, canProceedWithPassword, mobileNumber]);
 
   const onSubmit = async (data: ResetPasswordFormData) => {
     try {
@@ -121,8 +122,10 @@ export const ResetPasswordScreen = () => {
 
       showToast({ type: 'success', message: response.data.message || 'Password reset successfully' });
       
-      // Navigate to login screen
-      navigation.navigate('Login');
+      // Navigate to success screen
+      navigation.navigate('Success', {
+        message: response.data.message || 'Password reset successfully',
+      });
     } catch (error: any) {
       showToast({
         type: 'error',
@@ -243,7 +246,7 @@ export const ResetPasswordScreen = () => {
                           <Text className="text-success text-xs">✓</Text>
                         </View>
                         <Text variant="caption" className="text-success lowercase">
-                          passwords match
+                        great! your passwords match.
                         </Text>
                       </>
                     ) : (

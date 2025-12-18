@@ -30,6 +30,8 @@ export const baseColors = {
   
   // Semantic colors
   success: '#28a745',
+  successLight: '#E6F9F4', // Light success background
+  successAccent: '#14B861', // Success accent/border color
   error: '#dc3545',
   errorLight: '#F3607A', // Lighter error color for borders
   errorDark: '#D81034', // Darker error color for text
@@ -66,6 +68,7 @@ export const lightTheme = {
   // Text colors
   textPrimary: '#090D0F',
   textSecondary: '#687078',
+  textBaseSecondary: '#424B53', // Base secondary text color
   textTertiary: '#9CA3AF',
   textInverse: '#FFFFFF',
   textDisabled: '#D1D5DB',
@@ -300,7 +303,7 @@ export const typography = {
   // UI component styles
   button: {
     fontSize: 16,
-    lineHeight: 24,
+    lineHeight: 19,
     fontWeight: '600' as const,
     fontFamily: fontFamily.primary,
   },

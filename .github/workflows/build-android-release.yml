@@ -16,6 +16,15 @@ on:
         required: false
         default: false
         type: boolean
+      create_release:
+        description: 'Create GitHub Release?'
+        required: false
+        default: true
+        type: boolean
+      release_tag:
+        description: 'Release tag (e.g., v1.0.0). Leave empty for auto-generated'
+        required: false
+        type: string
 
 jobs:
   build:
@@ -146,6 +155,52 @@ jobs:
         name: android-${{ github.event.inputs.build_type }}-apk
         path: ${{ steps.apk_info.outputs.apk_path }}
         retention-days: 30
+    
+    - name: Generate Release Tag
+      if: github.event.inputs.create_release == 'true'
+      id: release_tag
+      run: |
+        if [ -n "${{ github.event.inputs.release_tag }}" ]; then
+          echo "tag=${{ github.event.inputs.release_tag }}" >> $GITHUB_OUTPUT
+        else
+          echo "tag=android-${{ github.event.inputs.build_type }}-${GITHUB_SHA:0:7}" >> $GITHUB_OUTPUT
+        fi
+    
+    - name: Create GitHub Release
+      if: github.event.inputs.create_release == 'true'
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ steps.release_tag.outputs.tag }}
+        name: Android ${{ github.event.inputs.build_type }} Build - ${{ github.sha }}
+        body: |
+          ## 📱 Android Build Release
+          
+          **Build Type:** ${{ github.event.inputs.build_type }}
+          **APK Size:** ${{ steps.apk_info.outputs.apk_size }}
+          **Commit:** ${{ github.sha }}
+          **Branch:** ${{ github.ref_name }}
+          
+          ### 📦 Installation
+          
+          Download the APK file below and install on Android devices:
+          1. Enable "Install from Unknown Sources" in device settings
+          2. Transfer APK to device
+          3. Open and install
+          
+          ### ⚠️ Notes
+          
+          - This APK includes the JavaScript bundle and runs without Metro bundler
+          - For release builds, ensure you have proper signing configured
+          
+          ### 🔗 Links
+          
+          - [View Commit](https://github.com/${{ github.repository }}/commit/${{ github.sha }})
+          - [View Workflow Run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+        files: ${{ steps.apk_info.outputs.apk_path }}
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     
     - name: Generate APK Info
       run: |

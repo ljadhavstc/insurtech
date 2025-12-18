@@ -82,6 +82,11 @@
       "confirmPasswordRequired": "please confirm your password",
       "passwordsMatch": "passwords do not match"
       
+    },
+    "success": {
+      "title": "success",
+      "message": "your password has been updated successfully.  log in to continue.",
+      "loginButton": "login"
     }
   },
   "common": {

@@ -60,6 +60,11 @@
       "passwordMinLength": "La contraseña debe tener al menos 8 caracteres",
       "confirmPasswordRequired": "Por favor confirma tu contraseña",
       "passwordsMatch": "Las contraseñas no coinciden"
+    },
+    "success": {
+      "title": "éxito",
+      "message": "tu contraseña ha sido actualizada exitosamente.  inicia sesión para continuar.",
+      "loginButton": "iniciar sesión"
     }
   },
   "common": {

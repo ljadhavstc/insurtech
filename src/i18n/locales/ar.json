@@ -59,6 +59,11 @@
       "passwordMinLength": "يجب أن تكون كلمة المرور 8 أحرف على الأقل",
       "confirmPasswordRequired": "يرجى تأكيد كلمة المرور",
       "passwordsMatch": "كلمات المرور غير متطابقة"
+    },
+    "success": {
+      "title": "نجح",
+      "message": "تم تحديث كلمة المرور بنجاح.  سجل الدخول للمتابعة.",
+      "loginButton": "تسجيل الدخول"
     }
   },
   "common": {

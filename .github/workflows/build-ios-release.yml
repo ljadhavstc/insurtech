@@ -12,6 +12,15 @@ on:
           - ad-hoc
           - app-store
           - enterprise
+      create_release:
+        description: 'Create GitHub Release?'
+        required: false
+        default: true
+        type: boolean
+      release_tag:
+        description: 'Release tag (e.g., v1.0.0). Leave empty for auto-generated'
+        required: false
+        type: string
 
 jobs:
   build:
@@ -282,6 +291,53 @@ jobs:
         path: ${{ steps.ipa_info.outputs.ipa_path }}
         retention-days: 30
         if-no-files-found: error
+    
+    - name: Generate Release Tag
+      if: github.event.inputs.create_release == 'true'
+      id: release_tag
+      run: |
+        if [ -n "${{ github.event.inputs.release_tag }}" ]; then
+          echo "tag=${{ github.event.inputs.release_tag }}" >> $GITHUB_OUTPUT
+        else
+          echo "tag=ios-${{ github.event.inputs.distribution_method }}-${GITHUB_SHA:0:7}" >> $GITHUB_OUTPUT
+        fi
+    
+    - name: Create GitHub Release
+      if: github.event.inputs.create_release == 'true'
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ steps.release_tag.outputs.tag }}
+        name: iOS ${{ github.event.inputs.distribution_method }} Build - ${{ github.sha }}
+        body: |
+          ## 📱 iOS Build Release
+          
+          **Distribution Method:** ${{ github.event.inputs.distribution_method }}
+          **Build Type:** Release
+          **IPA Size:** ${{ steps.ipa_info.outputs.ipa_size }}
+          **Commit:** ${{ github.sha }}
+          **Branch:** ${{ github.ref_name }}
+          
+          ### 📦 Installation
+          
+          Download the IPA file below and install using:
+          - **TestFlight** (for app-store builds)
+          - **Apple Configurator** or **Xcode** (for ad-hoc builds)
+          - **MDM** (for enterprise builds)
+          
+          ### ⚠️ Notes
+          
+          - This IPA includes the JavaScript bundle and runs without Metro bundler
+          ${{ secrets.IOS_TEAM_ID && '' || '- **WARNING:** This IPA is UNSIGNED and cannot be installed on devices. Set IOS_TEAM_ID secret for signed builds.' }}
+          
+          ### 🔗 Links
+          
+          - [View Commit](https://github.com/${{ github.repository }}/commit/${{ github.sha }})
+          - [View Workflow Run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+        files: ${{ steps.ipa_info.outputs.ipa_path }}
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     
     - name: Cleanup Keychain
       if: always()

@@ -17,6 +17,7 @@ import { RegisterScreen } from '@/features/auth/screens/RegisterScreen';
 import { ForgotPasswordScreen } from '@/features/auth/screens/ForgotPasswordScreen';
 import { ResetPasswordScreen } from '@/features/auth/screens/ResetPasswordScreen';
 import { OTPVerificationScreen } from '@/features/auth/screens/OTPVerificationScreen';
+import { SuccessScreen } from '@/features/auth/screens/SuccessScreen';
 import { View, Text } from 'react-native';
 
 const Stack = createStackNavigator();
@@ -86,6 +87,7 @@ const AuthStack = () => {
       <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
       <Stack.Screen name="OTPVerification" component={OTPVerificationScreen} />
       <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} />
+      <Stack.Screen name="Success" component={SuccessScreen} />
     </Stack.Navigator>
   );
 };

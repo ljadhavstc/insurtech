@@ -64,10 +64,10 @@ export interface ButtonProps extends Omit<PressableProps, 'style'> {
   testID?: string;
 }
 
-const sizeMap: Record<ButtonSize, { height: number; paddingHorizontal: number; fontSize: number }> = {
-  small: { height: 40, paddingHorizontal: 12, fontSize: 14 },
-  medium: { height: 48, paddingHorizontal: 16, fontSize: 16 },
-  large: { height: 56, paddingHorizontal: 20, fontSize: 18 },
+const sizeMap: Record<ButtonSize, { height: number; paddingVertical: number; paddingHorizontal: number; fontSize: number }> = {
+  small: { height: 40, paddingVertical: 12, paddingHorizontal: 16, fontSize: 14 },
+  medium: { height: 56, paddingVertical: 16, paddingHorizontal: 22, fontSize: 16 },
+  large: { height: 56, paddingVertical: 16, paddingHorizontal: 22, fontSize: 18 },
 };
 
 export const Button: React.FC<ButtonProps> = ({
@@ -85,7 +85,12 @@ export const Button: React.FC<ButtonProps> = ({
   const isDisabled = disabled || loading;
   const sizeConfig = sizeMap[size];
   const scaledHeight = ms(sizeConfig.height);
+  const scaledPaddingVertical = ms(sizeConfig.paddingVertical);
   const scaledPaddingHorizontal = ms(sizeConfig.paddingHorizontal);
+  const scaledBorderRadius = ms(2);
+  const scaledGap = ms(10);
+  // Button width: 343px based on 390px design width (87.95% of screen width)
+  const scaledWidth = fullWidth ? ms(343) : undefined;
 
   // Solid variant: Disabled uses #FFC1CD, enabled uses primary color (brand red)
   // Ghost variant: Transparent background with text color
@@ -103,16 +108,19 @@ export const Button: React.FC<ButtonProps> = ({
       disabled={isDisabled}
       testID={testID}
       className={`
-        ${fullWidth ? 'w-full' : ''}
         items-center justify-center
-        rounded-sm
         ${variant === 'ghost' && isDisabled ? 'opacity-50' : ''}
         ${className || ''}
       `}
       style={{
+        width: scaledWidth,
         height: scaledHeight,
+        paddingVertical: scaledPaddingVertical,
         paddingHorizontal: scaledPaddingHorizontal,
+        borderRadius: scaledBorderRadius,
+        gap: scaledGap,
         backgroundColor,
+        alignSelf: fullWidth ? 'center' : undefined,
       }}
       {...props}
     >
