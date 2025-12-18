@@ -18,6 +18,7 @@ import { Text } from '@/components/primitives/Text';
 import { Button } from '@/components/primitives/Button';
 import { Input } from '@/components/primitives/Input';
 import { PasswordValidationRules } from '@/components/form/PasswordValidationRules';
+import { PasswordStrengthMeter, usePasswordStrength } from '@/components/form/PasswordStrengthMeter';
 import { MobileNumberWarning } from '@/components/form/MobileNumberWarning';
 import { LanguageDropdown } from '@/components/LanguageDropdown';
 import { vs } from '@/utils/scale';
@@ -62,6 +63,9 @@ export const ResetPasswordScreen = () => {
   const newPassword = watch('newPassword');
   const confirmPassword = watch('confirmPassword');
 
+  // Password strength check
+  const { strength: passwordStrength, canProceed: canProceedWithPassword } = usePasswordStrength(newPassword || '');
+
   // Password validation function
   const validatePassword = (password: string): string | undefined => {
     if (!password) return undefined; // Let required rule handle empty
@@ -96,14 +100,15 @@ export const ResetPasswordScreen = () => {
     return newPassword === confirmPassword;
   }, [newPassword, confirmPassword]);
 
-  // Check if form is valid
+  // Check if form is valid - password must be strong and all other validations pass
   const isFormValid = useMemo(() => {
     const hasNewPassword = newPassword && newPassword.length > 0;
     const hasConfirmPassword = confirmPassword && confirmPassword.length > 0;
     const noErrors = !errors.newPassword && !errors.confirmPassword;
     const passwordsMatchValue = newPassword === confirmPassword;
-    return hasNewPassword && hasConfirmPassword && noErrors && passwordsMatchValue && !validatePassword(newPassword);
-  }, [newPassword, confirmPassword, errors, validatePassword]);
+    const passwordIsStrong = canProceedWithPassword; // Only allow proceed when strength is "strong"
+    return hasNewPassword && hasConfirmPassword && noErrors && passwordsMatchValue && passwordIsStrong;
+  }, [newPassword, confirmPassword, errors, canProceedWithPassword]);
 
   const onSubmit = async (data: ResetPasswordFormData) => {
     try {
@@ -197,7 +202,7 @@ export const ResetPasswordScreen = () => {
                 )}
               />
               
-            
+      
             </View>
 
             {/* Confirm Password Field */}
@@ -254,7 +259,12 @@ export const ResetPasswordScreen = () => {
                   </View>
                 </View>
               )}
-            </View>
+                        </View>
+
+                {/* Password Strength Meter */}
+                <View className="mt-xs mb-md">
+                <PasswordStrengthMeter password={newPassword || ''} />
+              </View>
             <MobileNumberWarning password={newPassword} mobileNumber={mobileNumber} />
 
             {/* Subtitle */}

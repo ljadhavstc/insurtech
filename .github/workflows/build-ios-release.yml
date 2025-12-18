@@ -209,16 +209,33 @@ jobs:
             -allowProvisioningUpdates
         else
           # Export without signing (for unsigned builds)
-          echo "⚠️  Exporting unsigned IPA (not installable on devices)..."
-          # Create a minimal export options plist for unsigned export
-          printf '<?xml version="1.0" encoding="UTF-8"?>\n<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">\n<plist version="1.0">\n<dict>\n    <key>method</key>\n    <string>development</string>\n    <key>signingStyle</key>\n    <string>manual</string>\n    <key>stripSwiftSymbols</key>\n    <true/>\n</dict>\n</plist>\n' > ExportOptionsUnsigned.plist
-          xcodebuild -exportArchive \
-            -archivePath build/insurtech.xcarchive \
-            -exportPath build/ipa \
-            -exportOptionsPlist ExportOptionsUnsigned.plist \
-            CODE_SIGN_IDENTITY="" \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=NO || echo "⚠️  Export may have failed due to unsigned build"
+          # xcodebuild -exportArchive cannot export unsigned IPAs, so we create it manually
+          echo "⚠️  Creating unsigned IPA manually (not installable on devices)..."
+          mkdir -p build/ipa
+          
+          # Extract the .app bundle from the archive
+          APP_BUNDLE=$(find build/insurtech.xcarchive/Products/Applications -name "*.app" -type d | head -n 1)
+          
+          if [ -z "$APP_BUNDLE" ]; then
+            echo "❌ Error: Could not find .app bundle in archive"
+            exit 1
+          fi
+          
+          APP_NAME=$(basename "$APP_BUNDLE")
+          IPA_NAME="${APP_NAME%.app}.ipa"
+          
+          # Create Payload directory and copy .app bundle
+          mkdir -p build/ipa/Payload
+          cp -R "$APP_BUNDLE" build/ipa/Payload/
+          
+          # Create IPA by zipping the Payload directory
+          cd build/ipa
+          zip -r "$IPA_NAME" Payload
+          # Clean up Payload directory after creating IPA
+          rm -rf Payload
+          cd ../..
+          
+          echo "✅ Created unsigned IPA: build/ipa/$IPA_NAME"
         fi
     
     - name: List exported files
