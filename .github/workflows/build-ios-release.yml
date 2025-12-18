@@ -78,10 +78,11 @@ jobs:
     
     - name: Setup Keychain
       env:
-        KEYCHAIN_PASSWORD: ${{ secrets.IOS_KEYCHAIN_PASSWORD || 'github-actions' }}
+        KEYCHAIN_PASSWORD: ${{ secrets.IOS_KEYCHAIN_PASSWORD }}
         CERTIFICATE_BASE64: ${{ secrets.IOS_CERTIFICATE_BASE64 }}
         CERTIFICATE_PASSWORD: ${{ secrets.IOS_CERTIFICATE_PASSWORD }}
       run: |
+        KEYCHAIN_PASSWORD="${KEYCHAIN_PASSWORD:-github-actions}"
         if [ -n "$CERTIFICATE_BASE64" ]; then
           # Create keychain
           security create-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
@@ -106,10 +107,15 @@ jobs:
         fi
     
     - name: Update ExportOptions.plist
+      env:
+        IOS_TEAM_ID: ${{ secrets.IOS_TEAM_ID }}
+        IOS_PROVISIONING_PROFILE_NAME: ${{ secrets.IOS_PROVISIONING_PROFILE_NAME }}
       run: |
         cd ios
-        sed -i '' "s/YOUR_TEAM_ID/${{ secrets.IOS_TEAM_ID || 'YOUR_TEAM_ID' }}/g" ExportOptions.plist
-        sed -i '' "s/YOUR_PROVISIONING_PROFILE_NAME/${{ secrets.IOS_PROVISIONING_PROFILE_NAME || 'YOUR_PROVISIONING_PROFILE_NAME' }}/g" ExportOptions.plist
+        TEAM_ID="${IOS_TEAM_ID:-YOUR_TEAM_ID}"
+        PROFILE_NAME="${IOS_PROVISIONING_PROFILE_NAME:-YOUR_PROVISIONING_PROFILE_NAME}"
+        sed -i '' "s/YOUR_TEAM_ID/$TEAM_ID/g" ExportOptions.plist
+        sed -i '' "s/YOUR_PROVISIONING_PROFILE_NAME/$PROFILE_NAME/g" ExportOptions.plist
         sed -i '' "s/ad-hoc/${{ github.event.inputs.distribution_method }}/g" ExportOptions.plist
     
     - name: Configure Code Signing
@@ -137,65 +143,16 @@ jobs:
             echo "✅ Updated DEVELOPMENT_TEAM in Release target configuration"
           else
             # Add DEVELOPMENT_TEAM after IPHONEOS_DEPLOYMENT_TARGET in Release target config
-            python3 << EOF
-import re
-import os
-
-team_id = os.environ.get('IOS_TEAM_ID', '')
-project_file = "insurtech.xcodeproj/project.pbxproj"
-
-with open(project_file, 'r') as f:
-    content = f.read()
-
-# Find Release target configuration and add DEVELOPMENT_TEAM
-pattern = r'(13B07F951A680F5B00A75B9A /\* Release \*/ = \{[^}]*buildSettings = \{)([^}]*IPHONEOS_DEPLOYMENT_TARGET = 15\.1;)([^}]*)(\})'
-match = re.search(pattern, content, re.DOTALL)
-
-if match:
-    build_settings = match.group(3)
-    if 'DEVELOPMENT_TEAM' not in build_settings:
-        new_line = f'\t\t\t\tDEVELOPMENT_TEAM = {team_id};\n'
-        content = content[:match.end(2)] + new_line + build_settings + content[match.end(3):]
-        with open(project_file, 'w') as f:
-            f.write(content)
-        print("✅ Added DEVELOPMENT_TEAM to Release target configuration")
-    else:
-        print("✅ DEVELOPMENT_TEAM already exists")
-else:
-    print("⚠️  Could not find Release target configuration")
-EOF
+            cd ios
+            python3 ../scripts/update-xcode-team.py team
+            cd ..
           fi
           
           # Also add CODE_SIGN_STYLE = Manual for Release target if not present
           if ! grep -A 20 "13B07F951A680F5B00A75B9A /\* Release \*/" insurtech.xcodeproj/project.pbxproj | grep -q "CODE_SIGN_STYLE"; then
-            python3 << EOF
-import re
-import os
-
-team_id = os.environ.get('IOS_TEAM_ID', '')
-project_file = "insurtech.xcodeproj/project.pbxproj"
-
-with open(project_file, 'r') as f:
-    content = f.read()
-
-# Find Release target configuration and add CODE_SIGN_STYLE after DEVELOPMENT_TEAM
-escaped_team_id = re.escape(team_id)
-pattern = r'(13B07F951A680F5B00A75B9A /\* Release \*/ = \{[^}]*buildSettings = \{)([^}]*DEVELOPMENT_TEAM = ' + escaped_team_id + r';)([^}]*)(\})'
-match = re.search(pattern, content, re.DOTALL)
-
-if match:
-    build_settings = match.group(3)
-    if 'CODE_SIGN_STYLE' not in build_settings:
-        new_line = '\t\t\t\tCODE_SIGN_STYLE = Manual;\n'
-        content = content[:match.end(2)] + new_line + build_settings + content[match.end(3):]
-        with open(project_file, 'w') as f:
-            f.write(content)
-        print("✅ Added CODE_SIGN_STYLE = Manual to Release target configuration")
-    else:
-        print("✅ CODE_SIGN_STYLE already exists")
-else:
-    print("⚠️  Could not find Release target configuration")
-EOF
+            cd ios
+            python3 ../scripts/update-xcode-team.py code_sign
+            cd ..
           fi
         else
           # Disable code signing if no team ID
@@ -213,16 +170,19 @@ EOF
         if [ -n "${{ secrets.IOS_TEAM_ID }}" ]; then
           # Build with code signing
           echo "🔐 Building with code signing..."
+          CODE_SIGN_IDENTITY="${{ secrets.IOS_CODE_SIGN_IDENTITY }}"
+          CODE_SIGN_IDENTITY="${CODE_SIGN_IDENTITY:-iPhone Developer}"
+          PROVISIONING_PROFILE="${{ secrets.IOS_PROVISIONING_PROFILE_NAME }}"
           xcodebuild -workspace insurtech.xcworkspace \
             -scheme insurtech \
             -configuration Release \
             -archivePath build/insurtech.xcarchive \
             archive \
-            CODE_SIGN_IDENTITY="${{ secrets.IOS_CODE_SIGN_IDENTITY || 'iPhone Developer' }}" \
+            CODE_SIGN_IDENTITY="$CODE_SIGN_IDENTITY" \
             DEVELOPMENT_TEAM="${{ secrets.IOS_TEAM_ID }}" \
             CODE_SIGNING_REQUIRED=YES \
             CODE_SIGNING_ALLOWED=YES \
-            PROVISIONING_PROFILE_SPECIFIER="${{ secrets.IOS_PROVISIONING_PROFILE_NAME || '' }}"
+            PROVISIONING_PROFILE_SPECIFIER="$PROVISIONING_PROFILE"
         else
           # Build without code signing (unsigned - not installable on devices)
           echo "⚠️  Building WITHOUT code signing (unsigned build)..."
@@ -251,20 +211,7 @@ EOF
           # Export without signing (for unsigned builds)
           echo "⚠️  Exporting unsigned IPA (not installable on devices)..."
           # Create a minimal export options plist for unsigned export
-          cat > ExportOptionsUnsigned.plist << EOF
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-    <key>method</key>
-    <string>development</string>
-    <key>signingStyle</key>
-    <string>manual</string>
-    <key>stripSwiftSymbols</key>
-    <true/>
-</dict>
-</plist>
-EOF
+          printf '<?xml version="1.0" encoding="UTF-8"?>\n<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">\n<plist version="1.0">\n<dict>\n    <key>method</key>\n    <string>development</string>\n    <key>signingStyle</key>\n    <string>manual</string>\n    <key>stripSwiftSymbols</key>\n    <true/>\n</dict>\n</plist>\n' > ExportOptionsUnsigned.plist
           xcodebuild -exportArchive \
             -archivePath build/insurtech.xcarchive \
             -exportPath build/ipa \
@@ -347,4 +294,3 @@ EOF
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "⚠️  **Warning:** This IPA is UNSIGNED and cannot be installed on iOS devices. Set IOS_TEAM_ID secret to create a signed, installable IPA." >> $GITHUB_STEP_SUMMARY
         fi
-
