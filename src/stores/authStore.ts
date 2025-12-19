@@ -21,6 +21,7 @@ interface AuthState {
   token: string | null;
   refreshToken: string | null;
   isAuthenticated: boolean;
+  hasLoggedInBefore: boolean; // Add this
   
   // Actions
   setTokens: (token: string, refreshToken: string) => void;
@@ -38,6 +39,7 @@ export const authStore = create<AuthState>()(
       token: null,
       refreshToken: null,
       isAuthenticated: false,
+      hasLoggedInBefore: false, // Add this
 
       // Actions
       setTokens: (token, refreshToken) => {
@@ -54,6 +56,7 @@ export const authStore = create<AuthState>()(
           token,
           refreshToken,
           isAuthenticated: true,
+          hasLoggedInBefore: true, // Set to true when user logs in
         });
       },
 
@@ -63,6 +66,7 @@ export const authStore = create<AuthState>()(
           token: null,
           refreshToken: null,
           isAuthenticated: false,
+          // Keep hasLoggedInBefore as true even after logout
         });
       },
 
@@ -80,6 +84,7 @@ export const authStore = create<AuthState>()(
         token: state.token,
         refreshToken: state.refreshToken,
         isAuthenticated: state.isAuthenticated,
+        hasLoggedInBefore: state.hasLoggedInBefore, // Persist this
       }),
     }
   )

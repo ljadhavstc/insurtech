@@ -18,6 +18,11 @@ import { ForgotPasswordScreen } from '@/features/auth/screens/ForgotPasswordScre
 import { ResetPasswordScreen } from '@/features/auth/screens/ResetPasswordScreen';
 import { OTPVerificationScreen } from '@/features/auth/screens/OTPVerificationScreen';
 import { SuccessScreen } from '@/features/auth/screens/SuccessScreen';
+import { MobileNumberInputScreen } from '@/features/auth/screens/MobileNumberInputScreen';
+import { PasswordSetupScreen } from '@/features/auth/screens/PasswordSetupScreen';
+import { EmailInputScreen } from '@/features/auth/screens/EmailInputScreen';
+import { StartVerificationScreen } from '@/features/auth/screens/StartVerificationScreen';
+import { VerificationProgressScreen } from '@/features/auth/screens/VerificationProgressScreen';
 import { View, Text } from 'react-native';
 
 const Stack = createStackNavigator();
@@ -84,9 +89,14 @@ const AuthStack = () => {
     >
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="Register" component={RegisterScreen} />
+      <Stack.Screen name="MobileNumberInput" component={MobileNumberInputScreen} />
       <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
       <Stack.Screen name="OTPVerification" component={OTPVerificationScreen} />
       <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} />
+      <Stack.Screen name="PasswordSetup" component={PasswordSetupScreen} />
+      <Stack.Screen name="EmailInput" component={EmailInputScreen} />
+      <Stack.Screen name="StartVerification" component={StartVerificationScreen} />
+      <Stack.Screen name="VerificationProgress" component={VerificationProgressScreen} />
       <Stack.Screen name="Success" component={SuccessScreen} />
     </Stack.Navigator>
   );
@@ -118,6 +128,8 @@ const RootStack = () => {
     >
       <Stack.Screen name="Splash" component={SplashScreen} />
       <Stack.Screen name="Onboarding" component={OnboardingScreen} />
+      <Stack.Screen name="StartVerification" component={StartVerificationScreen} />
+      <Stack.Screen name="VerificationProgress" component={VerificationProgressScreen} />
       <Stack.Screen name="Auth" component={AuthStack} />
       <Stack.Screen name="App" component={AppStack} />
     </Stack.Navigator>

@@ -1,9 +1,12 @@
 /**
- * Reset Password Screen
+ * Password Setup Screen
  * 
- * Screen for resetting password after OTP verification.
- * Includes password validation rules and mobile number warning.
- * Matches Figma design structure with header, content card, and form fields.
+ * Reusable screen for password setup that can be customized for different flows:
+ * - Password reset
+ * - Registration
+ * - Password change
+ * 
+ * Highly customizable with configurable titles, subtitles, button text, and navigation.
  */
 
 import React, { useState, useMemo } from 'react';
@@ -25,41 +28,126 @@ import { vs } from '@/utils/scale';
 import { useScreenDimensions } from '@/utils/useScreenDimensions';
 import { lightTheme } from '@/styles/tokens';
 import { Icon } from '@/components/icons';
+import { authStore } from '@/stores/authStore';
 
-type AuthStackParamList = {
-  ResetPassword: { mobileNumber?: string; email?: string; resetToken: string };
-  Success: { message?: string };
-  Login: undefined;
-};
+export type PasswordSetupPurpose = 'password-reset' | 'registration' | 'password-change';
 
-type ResetPasswordScreenNavigationProp = StackNavigationProp<AuthStackParamList, 'ResetPassword'>;
-type ResetPasswordScreenRouteProp = RouteProp<AuthStackParamList, 'ResetPassword'>;
+export interface PasswordSetupScreenConfig {
+  /**
+   * Purpose of the screen - determines API endpoint and navigation flow
+   */
+  purpose: PasswordSetupPurpose;
+  
+  /**
+   * Screen title in header
+   */
+  screenTitle?: string;
+  
+  /**
+   * Main title text
+   */
+  title?: string;
+  
+  /**
+   * Subtitle/description text
+   */
+  subtitle?: string;
+  
+  /**
+   * Primary button text
+   */
+  buttonText?: string;
+  
+  /**
+   * Mobile number for validation (optional)
+   */
+  mobileNumber?: string;
+  
+  /**
+   * Email for API calls (optional)
+   */
+  email?: string;
+  
+  /**
+   * Reset token (required for password-reset)
+   */
+  resetToken?: string;
+  
+  /**
+   * Custom API endpoint (optional, defaults based on purpose)
+   */
+  apiEndpoint?: string;
+  
+  /**
+   * Custom onSuccess callback (optional)
+   * If provided, this will be called instead of default navigation
+   */
+  onSuccess?: (password: string, response: any) => void;
+  
+  /**
+   * Next screen name for navigation (optional)
+   * If not provided, defaults based on purpose
+   */
+  nextScreen?: string;
+  
+  /**
+   * Additional params to pass to next screen
+   */
+  nextScreenParams?: Record<string, any>;
+  
+  /**
+   * Show mobile number warning (default: true)
+   */
+  showMobileWarning?: boolean;
+  
+  /**
+   * Show password validation rules (default: true)
+   */
+  showValidationRules?: boolean;
+}
 
-type ResetPasswordFormData = {
+type PasswordSetupFormData = {
   newPassword: string;
   confirmPassword: string;
 };
 
-export const ResetPasswordScreen = () => {
+type AuthStackParamList = {
+  PasswordSetup: { config: PasswordSetupScreenConfig };
+  Success: { message?: string };
+  Login: undefined;
+  [key: string]: any;
+};
+
+type PasswordSetupScreenNavigationProp = StackNavigationProp<AuthStackParamList, 'PasswordSetup'>;
+type PasswordSetupScreenRouteProp = RouteProp<AuthStackParamList, 'PasswordSetup'>;
+
+export const PasswordSetupScreen: React.FC = () => {
   const { t } = useTranslation();
-  const navigation = useNavigation<ResetPasswordScreenNavigationProp>();
-  const route = useRoute<ResetPasswordScreenRouteProp>();
+  const navigation = useNavigation<PasswordSetupScreenNavigationProp>();
+  const route = useRoute<PasswordSetupScreenRouteProp>();
   const { showToast } = useToast();
   const [loading, setLoading] = useState(false);
-  const { mobileNumber, email, resetToken } = route.params;
-  const { isLandscape } = useScreenDimensions(); // Orientation-aware responsive design
+  const login = authStore((state) => state.login);
+  const { isLandscape } = useScreenDimensions();
+  
+  const config = route.params?.config || {
+    purpose: 'password-reset' as PasswordSetupPurpose,
+    mobileNumber: route.params?.mobileNumber,
+    email: route.params?.email,
+    resetToken: route.params?.resetToken,
+  };
 
   const {
     control,
     handleSubmit,
     formState: { errors },
     watch,
-  } = useForm<ResetPasswordFormData>({
+  } = useForm<PasswordSetupFormData>({
     defaultValues: {
       newPassword: '',
       confirmPassword: '',
     },
-    mode: 'onChange', // Validate on change for real-time feedback
+    mode: 'onChange',
     reValidateMode: 'onChange',
   });
 
@@ -71,7 +159,7 @@ export const ResetPasswordScreen = () => {
 
   // Password validation function
   const validatePassword = (password: string): string | undefined => {
-    if (!password) return undefined; // Let required rule handle empty
+    if (!password) return undefined;
     
     if (password.length < 1) {
       return t('auth.resetPassword.passwordMinLength');
@@ -91,7 +179,7 @@ export const ResetPasswordScreen = () => {
     if (!/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password)) {
       return t('auth.resetPassword.passwordSpecialChar');
     }
-    if (mobileNumber && password.includes(mobileNumber)) {
+    if (config.mobileNumber && password.includes(config.mobileNumber)) {
       return t('auth.resetPassword.passwordContainsMobile');
     }
     return undefined;
@@ -99,39 +187,132 @@ export const ResetPasswordScreen = () => {
 
   // Check if passwords match
   const passwordsMatch = useMemo(() => {
-    if (!newPassword || !confirmPassword) return true; // Don't show error until both are filled
+    if (!newPassword || !confirmPassword) return true;
     return newPassword === confirmPassword;
   }, [newPassword, confirmPassword]);
 
-  // Check if form is valid - password must be strong and all other validations pass
+  // Check if form is valid
   const isFormValid = useMemo(() => {
     const hasNewPassword = newPassword && newPassword.length > 0;
     const hasConfirmPassword = confirmPassword && confirmPassword.length > 0;
     const passwordsMatchValue = newPassword === confirmPassword;
-    const passwordIsStrong = canProceedWithPassword; // Only allow proceed when strength is "strong"
+    const passwordIsStrong = canProceedWithPassword;
     const passwordValid = validatePassword(newPassword) === undefined;
     return hasNewPassword && hasConfirmPassword && passwordsMatchValue && passwordIsStrong && passwordValid;
-  }, [newPassword, confirmPassword, canProceedWithPassword, mobileNumber]);
+  }, [newPassword, confirmPassword, canProceedWithPassword, config.mobileNumber]);
 
-  const onSubmit = async (data: ResetPasswordFormData) => {
+  // Get default values based on purpose
+  const getDefaultConfig = () => {
+    switch (config.purpose) {
+      case 'password-reset':
+        return {
+          screenTitle: t('auth.resetPassword.screenTitle'),
+          title: t('auth.resetPassword.title'),
+          subtitle: t('auth.resetPassword.subtitle'),
+          buttonText: t('auth.resetPassword.reset'),
+          apiEndpoint: '/auth/reset-password',
+          nextScreen: 'Success',
+          showMobileWarning: true,
+          showValidationRules: true,
+        };
+      case 'registration':
+        return {
+          screenTitle: t('auth.register.passwordScreenTitle', 'set password'),
+          title: t('auth.register.passwordTitle', 'create password'),
+          subtitle: t('auth.register.passwordSubtitle', 'your password must contain:'),
+          buttonText: t('auth.register.continue', 'continue'),
+          apiEndpoint: '/auth/register/complete',
+          nextScreen: 'Success',
+          showMobileWarning: true,
+          showValidationRules: true,
+        };
+      case 'password-change':
+        return {
+          screenTitle: t('auth.changePassword.screenTitle', 'change password'),
+          title: t('auth.changePassword.title', 'enter new password'),
+          subtitle: t('auth.changePassword.subtitle', 'your password must contain:'),
+          buttonText: t('auth.changePassword.save', 'save password'),
+          apiEndpoint: '/auth/change-password',
+          nextScreen: 'Success',
+          showMobileWarning: false,
+          showValidationRules: true,
+        };
+      default:
+        return {};
+    }
+  };
+
+  const defaultConfig = getDefaultConfig();
+  const finalConfig = { ...defaultConfig, ...config };
+
+  const onSubmit = async (data: PasswordSetupFormData) => {
     try {
       setLoading(true);
-      const response = await api.post('/auth/reset-password', {
-        email: email || mobileNumber,
-        resetToken,
-        newPassword: data.newPassword,
-      });
-
-      showToast({ type: 'success', message: response.data.message || 'Password reset successfully' });
       
-      // Navigate to success screen
-      navigation.navigate('Success', {
-        message: response.data.message || 'Password reset successfully',
-      });
+      let response;
+      const endpoint = finalConfig.apiEndpoint || '/auth/reset-password';
+      
+      if (config.purpose === 'registration') {
+        // Registration flow - just validate password, don't complete registration yet
+        // We'll complete it after email is entered
+        // For now, just return success to proceed to email screen
+        response = {
+          data: {
+            success: true,
+            message: 'Password set successfully',
+          },
+        };
+      } else if (config.purpose === 'password-reset') {
+        // Password reset flow
+        response = await api.post(endpoint, {
+          email: config.email || config.mobileNumber,
+          resetToken: config.resetToken,
+          newPassword: data.newPassword,
+        });
+      } else {
+        // Password change flow
+        response = await api.post(endpoint, {
+          newPassword: data.newPassword,
+          currentPassword: '', // This would need to be provided
+        });
+      }
+
+      showToast({ type: 'success', message: response.data.message || 'Password set successfully' });
+      
+      // If custom onSuccess callback provided, use it
+      if (finalConfig.onSuccess) {
+        finalConfig.onSuccess(data.newPassword, response.data);
+        return;
+      }
+      
+      // For registration, navigate to email input screen instead of auto-login
+      if (config.purpose === 'registration') {
+        // Navigate to email input screen
+        navigation.navigate('EmailInput', {
+          mobileNumber: config.mobileNumber,
+          password: data.newPassword,
+          resetToken: config.resetToken,
+        });
+        return;
+      }
+      
+      // Auto-login for other purposes (if applicable)
+      if (response.data.user && response.data.token) {
+        login(response.data.user, response.data.token, response.data.refreshToken);
+      }
+      
+      // Default navigation
+      const nextScreen = finalConfig.nextScreen || 'Success';
+      const nextParams = {
+        message: response.data.message || 'Password set successfully',
+        ...finalConfig.nextScreenParams,
+      };
+      
+      navigation.navigate(nextScreen as any, nextParams);
     } catch (error: any) {
       showToast({
         type: 'error',
-        message: error.response?.data?.message || error.message || 'Failed to reset password',
+        message: error.response?.data?.message || error.message || 'Failed to set password',
       });
     } finally {
       setLoading(false);
@@ -167,7 +348,7 @@ export const ResetPasswordScreen = () => {
 
               {/* Title */}
               <Text variant="onboardingHeader" className="text-theme-text-primary">
-                {t('auth.resetPassword.screenTitle')}
+                {finalConfig.screenTitle || 'Set Password'}
               </Text>
 
               {/* Language Dropdown */}
@@ -180,10 +361,9 @@ export const ResetPasswordScreen = () => {
             {/* Card Header */}
             <View className="pb-xs">
               <Text variant="screenTitle" className="text-theme-text-primary">
-                {t('auth.resetPassword.title')}
+                {finalConfig.title || 'Enter New Password'}
               </Text>
             </View>
-
 
             {/* New Password Field */}
             <View className="pb-md">
@@ -202,12 +382,10 @@ export const ResetPasswordScreen = () => {
                     label={t('auth.resetPassword.newPassword')}
                     placeholder={t('auth.resetPassword.newPasswordPlaceholder')}
                     error={errors.newPassword?.message}
-                    testID="reset-password-new-input"
+                    testID="password-setup-new-input"
                   />
                 )}
               />
-              
-      
             </View>
 
             {/* Confirm Password Field */}
@@ -231,13 +409,11 @@ export const ResetPasswordScreen = () => {
                     label={t('auth.resetPassword.confirmPassword')}
                     placeholder={t('auth.resetPassword.confirmPasswordPlaceholder')}
                     error={errors.confirmPassword?.message}
-                    testID="reset-password-confirm-input"
+                    testID="password-setup-confirm-input"
                   />
                 )}
               />
               
-            {/* Mobile Number Warning - Sticky Bar */}
-
               {/* Password Match Indicator */}
               {confirmPassword && confirmPassword.length > 0 && (
                 <View className="mt-xs">
@@ -248,7 +424,7 @@ export const ResetPasswordScreen = () => {
                           <Text className="text-success text-xs">✓</Text>
                         </View>
                         <Text variant="caption" className="text-success lowercase">
-                        great! your passwords match.
+                          great! your passwords match.
                         </Text>
                       </>
                     ) : (
@@ -264,26 +440,36 @@ export const ResetPasswordScreen = () => {
                   </View>
                 </View>
               )}
-                        </View>
+            </View>
 
-                {/* Password Strength Meter */}
-                <View className="mt-xs mb-md">
-                <PasswordStrengthMeter password={newPassword || ''} />
-              </View>
-            <MobileNumberWarning password={newPassword} mobileNumber={mobileNumber} />
+            {/* Password Strength Meter */}
+            <View className="mt-xs mb-md">
+              <PasswordStrengthMeter password={newPassword || ''} />
+            </View>
+            
+            {/* Mobile Number Warning */}
+            {finalConfig.showMobileWarning !== false && config.mobileNumber && (
+              <MobileNumberWarning password={newPassword} mobileNumber={config.mobileNumber} />
+            )}
 
             {/* Subtitle */}
-            <View className="pb-md">
-              <Text variant="text-small-tight" className="text-theme-text-primary">
-                {t('auth.resetPassword.subtitle')}
-              </Text>
-            </View>
-  {/* Password Validation Rules */}
-  <PasswordValidationRules
+            {finalConfig.subtitle && (
+              <View className="pb-md">
+                <Text variant="text-small-tight" className="text-theme-text-primary">
+                  {finalConfig.subtitle}
+                </Text>
+              </View>
+            )}
+            
+            {/* Password Validation Rules */}
+            {finalConfig.showValidationRules !== false && (
+              <PasswordValidationRules
                 password={newPassword || ''}
-                mobileNumber={mobileNumber}
+                mobileNumber={config.mobileNumber}
                 showWhenEmpty={true}
               />
+            )}
+            
             {/* Buttons */}
             <View className="gap-sm pt-md pb-md">
               <Button
@@ -293,9 +479,9 @@ export const ResetPasswordScreen = () => {
                 loading={loading}
                 disabled={!isFormValid}
                 fullWidth
-                testID="reset-password-button"
+                testID="password-setup-button"
               >
-                {t('auth.resetPassword.reset')}
+                {finalConfig.buttonText || 'Continue'}
               </Button>
             </View>
           </View>

@@ -19,12 +19,14 @@ import { Button } from '@/components/primitives/Button';
 import { OTPInput } from '@/components/form/OTPInput';
 import { LanguageDropdown } from '@/components/LanguageDropdown';
 import { vs } from '@/utils/scale';
+import { useScreenDimensions } from '@/utils/useScreenDimensions';
 import { lightTheme } from '@/styles/tokens';
 import { Icon } from '@/components/icons';
 
 type AuthStackParamList = {
-  OTPVerification: { mobileNumber?: string; email?: string; purpose?: 'password-reset' | 'verification' };
+  OTPVerification: { mobileNumber?: string; email?: string; purpose?: 'password-reset' | 'verification' | 'registration' };
   ResetPassword: { mobileNumber?: string; email?: string; resetToken: string };
+  PasswordSetup: { config?: any; mobileNumber?: string; email?: string; resetToken?: string };
   ForgotPassword: { mobileNumber?: string; email?: string };
   Login: undefined;
 };
@@ -45,6 +47,7 @@ export const OTPVerificationScreen = () => {
   const route = useRoute<OTPVerificationScreenRouteProp>();
   const { showToast } = useToast();
   const [loading, setLoading] = useState(false);
+  const { isLandscape } = useScreenDimensions(); // Orientation-aware responsive design
   const [resendLoading, setResendLoading] = useState(false);
   const [resendTimer, setResendTimer] = useState(0);
   const [cooldownTimer, setCooldownTimer] = useState(0);
@@ -123,6 +126,7 @@ export const OTPVerificationScreen = () => {
         mobileNumber: route.params?.mobileNumber || undefined,
         email: route.params?.email || undefined,
         otp: data.otp,
+        purpose: purpose, // Pass purpose for registration flow
       });
 
       // Show success state
@@ -137,6 +141,16 @@ export const OTPVerificationScreen = () => {
             mobileNumber: route.params?.mobileNumber,
             email: route.params?.email,
             resetToken: response.data.resetToken,
+          });
+        } else if (purpose === 'registration') {
+          // Navigate to password setup screen for registration
+          navigation.navigate('PasswordSetup', {
+            config: {
+              purpose: 'registration',
+              mobileNumber: route.params?.mobileNumber,
+              email: route.params?.email,
+              resetToken: response.data.resetToken || response.data.verificationToken,
+            },
           });
         } else {
           // For other verification purposes, navigate back or to appropriate screen
@@ -175,7 +189,12 @@ export const OTPVerificationScreen = () => {
       setResendLoading(true);
       setErrorMessage('');
 
-      const response = await api.post('/auth/forgot-password', {
+      // Use appropriate endpoint based on purpose
+      const endpoint = purpose === 'registration' 
+        ? '/auth/register/send-otp' 
+        : '/auth/forgot-password';
+      
+      const response = await api.post(endpoint, {
         mobileNumber: route.params?.mobileNumber || undefined,
         email: route.params?.email || undefined,
       });

@@ -18,6 +18,7 @@ import { Button } from '@/components/primitives/Button';
 import { FormField } from '@/components/form/FormField';
 import { LanguageDropdown } from '@/components/LanguageDropdown';
 import { vs } from '@/utils/scale';
+import { useScreenDimensions } from '@/utils/useScreenDimensions';
 import { lightTheme } from '@/styles/tokens';
 import { Icon } from '@/components/icons';
 
@@ -38,6 +39,7 @@ export const ForgotPasswordScreen = () => {
   const navigation = useNavigation<ForgotPasswordScreenNavigationProp>();
   const { showToast } = useToast();
   const [loading, setLoading] = useState(false);
+  const { isLandscape } = useScreenDimensions(); // Orientation-aware responsive design
 
   const {
     control,

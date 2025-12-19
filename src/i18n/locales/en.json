@@ -32,7 +32,18 @@
       "passwordRequired": "Password is required",
       "passwordMinLength": "Password must be at least 8 characters",
       "confirmPasswordRequired": "Please confirm your password",
-      "passwordsMatch": "Passwords do not match"
+      "passwordsMatch": "Passwords do not match",
+      "mobileScreenTitle": "account registration",
+      "mobileTitle": "enter your number",
+      "mobileSubtitle": "enter your number to create account.",
+      "continue": "continue",
+      "passwordScreenTitle": "set password",
+      "passwordTitle": "create password",
+      "passwordSubtitle": "your password must contain:",
+      "emailScreenTitle": "account registration",
+      "emailTitle": "enter your email",
+      "emailSubtitle": "enter your email address.",
+      "emailSuggestions": "suggestions:"
     },
     "forgotPassword": {
       "title": "get your code",
@@ -87,6 +98,27 @@
       "title": "success",
       "message": "your password has been updated successfully.  log in to continue.",
       "loginButton": "login"
+    },
+    "verification": {
+      "startScreenTitle": "identity verification",
+      "startTitle": "verifying your identity",
+      "startSubtitle": "ensure to have your valid CPR with you",
+      "validCPR": "valid CPR",
+      "cprDescription": "CPR helps us verify your identity and protect you from identity theft",
+      "scanPlaceholder": "Position your CPR card here",
+      "securityMessage": "your information will be encrypted and stored securely",
+      "startButton": "start verification",
+      "progressScreenTitle": "ID Verification",
+      "progressTitle": "setting up your account",
+      "progressSubtitle": "verifying your details, this should take under 2 mins.",
+      "successTitle": "registration successful",
+      "successSubtitle": "your account has been set up and is ready to use.",
+      "stepPersonalTitle": "personal information",
+      "stepAdditionalTitle": "additional information",
+      "stepFinalTitle": "final checks",
+      "homeButton": "home",
+      "allStepsComplete": "all verification steps completed!",
+      "completeMessage": "verification completed successfully"
     }
   },
   "common": {

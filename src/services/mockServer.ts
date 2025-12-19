@@ -99,7 +99,7 @@ export const mockLogin = async (emailOrPhone: string, password: string) => {
 };
 
 /**
- * Mock register endpoint
+ * Mock register endpoint (legacy - for direct registration)
  */
 export const mockRegister = async (email: string, password: string, name: string) => {
   await delay(1200);
@@ -117,6 +117,157 @@ export const mockRegister = async (email: string, password: string, name: string
       email,
       name,
       id: email,
+    },
+    ...tokens,
+  };
+};
+
+/**
+ * Mock register send OTP endpoint - sends OTP for registration
+ */
+export const mockRegisterSendOTP = async (mobileNumber: string) => {
+  await delay(800);
+
+  const now = Date.now();
+  const identifier = mobileNumber;
+
+  // Check if user already exists
+  // Allow test number 12341234 to request OTP multiple times for testing
+  const isTestRegistrationNumber = mobileNumber === '12341234';
+  if (!isTestRegistrationNumber) {
+    const existingUser = Object.values(mockUsers).find(
+      (u) => u.phoneNumber === mobileNumber
+    );
+    if (existingUser) {
+      throw new Error('User with this mobile number already exists');
+    }
+  }
+
+  // Check cooldown period
+  const existingOTP = otpData[identifier];
+  if (existingOTP?.cooldownUntil && now < existingOTP.cooldownUntil) {
+    const remainingSeconds = Math.ceil((existingOTP.cooldownUntil - now) / 1000);
+    throw new Error(`Please wait ${Math.ceil(remainingSeconds / 60)} minutes before requesting a new OTP`);
+  }
+
+  // Check resend cooldown (60 seconds)
+  if (existingOTP?.lastResendAt && (now - existingOTP.lastResendAt) < RESEND_COOLDOWN) {
+    const remainingSeconds = Math.ceil((RESEND_COOLDOWN - (now - existingOTP.lastResendAt)) / 1000);
+    throw new Error(`Please wait ${remainingSeconds} seconds before resending OTP`);
+  }
+
+  // Generate 4-digit OTP
+  // Test numbers with fixed OTP for easy testing
+  const testNumbers = ['12345678', '12341234']; // Registration test number: 12341234
+  const isTestNumber = testNumbers.includes(identifier);
+  const otp = isTestNumber ? '1234' : Math.floor(1000 + Math.random() * 9000).toString();
+  
+  // Store OTP data
+  otpData[identifier] = {
+    otp,
+    expiresAt: now + OTP_EXPIRY_TIME,
+    sentAt: now,
+    wrongAttempts: existingOTP?.wrongAttempts || 0,
+    lastResendAt: now,
+  };
+
+  // Reset cooldown if it was set
+  if (existingOTP?.cooldownUntil) {
+    delete otpData[identifier].cooldownUntil;
+  }
+
+  // In real app, send OTP via SMS
+  if (isTestNumber) {
+    console.log(`[MOCK] ✅ Registration OTP for ${identifier}: ${otp} (Use this code for testing)`);
+    if (identifier === '12341234') {
+      console.log(`[MOCK] 📱 Registration Test Number: 12341234 | OTP: 1234`);
+    } else {
+      console.log(`[MOCK] 📱 Test mobile number: 12345678 | OTP: 1234`);
+    }
+  } else {
+    console.log(`[MOCK] Registration OTP for ${identifier}: ${otp}`);
+  }
+
+  return {
+    success: true,
+    message: 'OTP has been sent to your mobile number.',
+    otp, // Only for development - remove in production
+    resendCooldown: RESEND_COOLDOWN / 1000, // seconds
+  };
+};
+
+/**
+ * Mock register complete endpoint - completes registration with password and email
+ */
+export const mockRegisterComplete = async (mobileNumber: string, password: string, email?: string, verificationToken?: string) => {
+  await delay(1000);
+
+  // Verify that OTP was verified (check if verificationToken is valid)
+  // In real app, verify the token properly
+  if (verificationToken && !verificationToken.startsWith(`reset_token_${mobileNumber}`)) {
+    throw new Error('Invalid verification token');
+  }
+
+  // Use provided email or generate one
+  const userEmail = email || `${mobileNumber}@mobile.user`;
+
+  // Check if user already exists by email
+  if (mockUsers[userEmail] && userEmail !== `${mobileNumber}@mobile.user`) {
+    throw new Error('User with this email already exists');
+  }
+
+  // Check if user already exists by mobile number
+  // Allow test number 12341234 to be registered multiple times for testing
+  const isTestRegistrationNumber = mobileNumber === '12341234';
+  if (!isTestRegistrationNumber) {
+    const existingUser = Object.values(mockUsers).find(
+      (u) => u.phoneNumber === mobileNumber
+    );
+    if (existingUser) {
+      throw new Error('User with this mobile number already exists');
+    }
+  } else {
+    // For test number, remove existing user to allow re-registration
+    const existingUser = Object.values(mockUsers).find(
+      (u) => u.phoneNumber === mobileNumber
+    );
+    if (existingUser) {
+      // Remove existing user to allow re-registration for testing
+      delete mockUsers[mobileNumber];
+      const oldEmail = existingUser.email;
+      if (oldEmail && mockUsers[oldEmail]) {
+        delete mockUsers[oldEmail];
+      }
+      console.log(`[MOCK] 🧪 Test number ${mobileNumber} - cleared existing user for re-registration`);
+    }
+  }
+
+  // Create new user
+  mockUsers[mobileNumber] = { 
+    email: userEmail, 
+    phoneNumber: mobileNumber, 
+    password 
+  };
+  mockUsers[userEmail] = { 
+    email: userEmail, 
+    phoneNumber: mobileNumber, 
+    password 
+  };
+
+  const tokens = generateToken(userEmail);
+
+  // Clear OTP data
+  if (otpData[mobileNumber]) {
+    delete otpData[mobileNumber];
+  }
+
+  return {
+    success: true,
+    message: 'Registration completed successfully',
+    user: {
+      email: userEmail,
+      phoneNumber: mobileNumber,
+      id: mobileNumber,
     },
     ...tokens,
   };
@@ -158,8 +309,9 @@ export const mockForgotPassword = async (emailOrMobile: string) => {
   }
 
   // Generate 4-digit OTP
-  // For test mobile number (12345678), use a fixed OTP for easy testing
-  const isTestNumber = identifier === '12345678';
+  // Test numbers with fixed OTP for easy testing
+  const testNumbers = ['12345678', '12341234']; // Registration test number: 12341234
+  const isTestNumber = testNumbers.includes(identifier);
   const otp = isTestNumber ? '1234' : Math.floor(1000 + Math.random() * 9000).toString();
   
   // Store OTP data
@@ -179,7 +331,11 @@ export const mockForgotPassword = async (emailOrMobile: string) => {
   // In real app, send OTP via email/SMS
   if (isTestNumber) {
     console.log(`[MOCK] ✅ Test OTP for ${identifier}: ${otp} (Use this code for testing)`);
-    console.log(`[MOCK] 📱 Test mobile number: 12345678 | OTP: 1234`);
+    if (identifier === '12341234') {
+      console.log(`[MOCK] 📱 Registration Test Number: 12341234 | OTP: 1234`);
+    } else {
+      console.log(`[MOCK] 📱 Test mobile number: 12345678 | OTP: 1234`);
+    }
   } else {
     console.log(`[MOCK] OTP for ${identifier}: ${otp}`);
   }
@@ -196,8 +352,9 @@ export const mockForgotPassword = async (emailOrMobile: string) => {
 /**
  * Mock OTP verification endpoint
  * Supports both email and mobile number
+ * Supports different purposes: password-reset, registration, verification
  */
-export const mockVerifyOTP = async (emailOrMobile: string, otp: string) => {
+export const mockVerifyOTP = async (emailOrMobile: string, otp: string, purpose?: string) => {
   await delay(600);
 
   const now = Date.now();
@@ -236,7 +393,20 @@ export const mockVerifyOTP = async (emailOrMobile: string, otp: string) => {
     throw new Error(`Invalid OTP. ${remainingAttempts} attempt${remainingAttempts !== 1 ? 's' : ''} remaining.`);
   }
 
-  // Find user by identifier
+  // For registration, don't require existing user
+  if (purpose === 'registration') {
+    // Clear OTP after successful verification
+    delete otpData[identifier];
+    
+    return {
+      success: true,
+      message: 'OTP verified successfully',
+      resetToken: `reset_token_${identifier}_${Date.now()}`,
+      verificationToken: `reset_token_${identifier}_${Date.now()}`, // Same token for registration
+    };
+  }
+
+  // For password reset, find user by identifier
   let user = mockUsers[identifier];
   if (!user) {
     const foundUser = Object.values(mockUsers).find(
@@ -305,13 +475,74 @@ export const mockRefreshToken = async (refreshToken: string) => {
   return tokens;
 };
 
+// Verification status tracking
+let verificationStartTime: number | null = null;
+const VERIFICATION_STEP_DURATION = 3000; // 3 seconds per step
+
+/**
+ * Mock verification status endpoint
+ * Returns which verification steps are completed
+ * Simulates completion: step 1 at 3s, step 2 at 6s, step 3 at 9s
+ */
+export const mockGetVerificationStatus = async () => {
+  await delay(100);
+
+  // Initialize start time if not set
+  if (verificationStartTime === null) {
+    verificationStartTime = Date.now();
+  }
+
+  const elapsed = Date.now() - verificationStartTime;
+  const completedSteps: string[] = [];
+
+  // Step 1 (document) completes at 3s
+  if (elapsed >= VERIFICATION_STEP_DURATION) {
+    completedSteps.push('document');
+  }
+
+  // Step 2 (selfie) completes at 6s
+  if (elapsed >= VERIFICATION_STEP_DURATION * 2) {
+    completedSteps.push('selfie');
+  }
+
+  // Step 3 (data) completes at 9s
+  if (elapsed >= VERIFICATION_STEP_DURATION * 3) {
+    completedSteps.push('data');
+  }
+
+  return {
+    success: true,
+    completedSteps,
+    isComplete: completedSteps.length === 3,
+    progress: Math.min(completedSteps.length / 3, 1),
+  };
+};
+
+/**
+ * Mock start verification endpoint
+ * Initializes verification process
+ */
+export const mockStartVerification = async () => {
+  await delay(500);
+  
+  // Reset verification start time
+  verificationStartTime = Date.now();
+
+  return {
+    success: true,
+    message: 'Verification process started',
+    verificationId: `verification_${Date.now()}`,
+  };
+};
+
 // Enable mock server in development OR always enable with fallback
 // In production, it will try real API first, then fallback to mock if unreachable
 const ENABLE_MOCK = true; // Always enable mock server
 const USE_MOCK_FIRST = __DEV__; // In dev, use mock first. In prod, try real API first
 
-// Store original post method
+// Store original methods
 const originalPost = api.post.bind(api);
+const originalGet = api.get.bind(api);
 
 // Helper function to get mock response
 const getMockResponse = async (url: string, data?: any): Promise<any> => {
@@ -320,6 +551,20 @@ const getMockResponse = async (url: string, data?: any): Promise<any> => {
   if (url.includes('/auth/login')) {
     const identifier = data?.phoneNumber || data?.email;
     mockResponse = await mockLogin(identifier, data?.password);
+  } else if (url.includes('/auth/register/send-otp')) {
+    const mobileNumber = data?.mobileNumber;
+    if (!mobileNumber) {
+      throw new Error('Mobile number is required');
+    }
+    mockResponse = await mockRegisterSendOTP(mobileNumber);
+  } else if (url.includes('/auth/register/complete')) {
+    const mobileNumber = data?.mobileNumber;
+    const password = data?.password;
+    const email = data?.email;
+    if (!mobileNumber || !password) {
+      throw new Error('Mobile number and password are required');
+    }
+    mockResponse = await mockRegisterComplete(mobileNumber, password, email, data?.resetToken || data?.verificationToken);
   } else if (url.includes('/auth/register')) {
     mockResponse = await mockRegister(data?.email, data?.password, data?.name);
   } else if (url.includes('/auth/forgot-password')) {
@@ -333,11 +578,13 @@ const getMockResponse = async (url: string, data?: any): Promise<any> => {
     if (!identifier || !data?.otp) {
       throw new Error('Mobile number/email and OTP are required');
     }
-    mockResponse = await mockVerifyOTP(identifier, data.otp);
+    mockResponse = await mockVerifyOTP(identifier, data.otp, data?.purpose);
   } else if (url.includes('/auth/reset-password')) {
     mockResponse = await mockResetPassword(data?.email || data?.mobileNumber, data?.resetToken, data?.newPassword);
   } else if (url.includes('/auth/refresh')) {
     mockResponse = await mockRefreshToken(data?.refreshToken);
+  } else if (url.includes('/auth/verification/start')) {
+    mockResponse = await mockStartVerification();
   } else {
     return null; // Not a mockable endpoint
   }
@@ -404,6 +651,55 @@ api.post = async function(url: string, data?: any, config?: any): Promise<any> {
           message: mockError.message,
         });
       }
+    }
+    
+    // Re-throw original error if not handled
+    throw error;
+  });
+};
+
+// Override axios get method for verification status
+api.get = async function(url: string, config?: any): Promise<any> {
+  const isAuthEndpoint = url.includes('/auth/');
+  
+  // Handle verification status endpoint
+  if (url.includes('/auth/verification/status')) {
+    try {
+      const mockResponse = await mockGetVerificationStatus();
+      return Promise.resolve({
+        data: mockResponse,
+        status: 200,
+        statusText: 'OK',
+        headers: {},
+        config: config || {},
+      });
+    } catch (error: any) {
+      return Promise.reject({
+        response: {
+          data: { message: error.message },
+          status: 400,
+          statusText: 'Bad Request',
+        },
+        message: error.message,
+      });
+    }
+  }
+  
+  // For other GET requests, try real API first
+  return originalGet(url, config).catch(async (error: any) => {
+    // If API fails and it's an auth endpoint, fallback to mock
+    if (isAuthEndpoint && (
+      error.code === 'NETWORK_ERROR' || 
+      error.code === 'ECONNABORTED' ||
+      error.message?.includes('Network') || 
+      error.message?.includes('timeout') ||
+      error.message?.includes('getaddrinfo') ||
+      !error.response || 
+      error.response?.status >= 500 ||
+      error.response?.status === 404
+    )) {
+      console.log('[MOCK SERVER] API unreachable, using mock fallback for GET:', url);
+      // Could add more GET endpoint handling here if needed
     }
     
     // Re-throw original error if not handled

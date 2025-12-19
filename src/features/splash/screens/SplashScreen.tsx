@@ -16,6 +16,7 @@ import { Text } from '@/components/primitives/Text';
 import { SplashLogo } from '@/components/splash/Logo';
 import { authStore } from '@/stores/authStore';
 import { s, vs } from '@/utils/scale';
+import { useScreenDimensions } from '@/utils/useScreenDimensions';
 
 type SplashScreenNavigationProp = StackNavigationProp<any>;
 
@@ -23,9 +24,10 @@ export const SplashScreen = () => {
   const navigation = useNavigation<SplashScreenNavigationProp>();
   const isAuthenticated = authStore((state) => state.isAuthenticated);
   const insets = useSafeAreaInsets();
+  const { isLandscape } = useScreenDimensions(); // Orientation-aware responsive design
 
   useEffect(() => {
-    // Show splash screen for 3 seconds
+    // Show splash screen for 2 seconds
     const timer = setTimeout(() => {
       if (isAuthenticated) {
         // Navigate to main app
@@ -34,10 +36,11 @@ export const SplashScreen = () => {
           routes: [{ name: 'App' }],
         });
       } else {
-        // Navigate to onboarding screen
+        // For testing: Navigate to StartVerification screen after splash
+        // Change this to 'Onboarding' for normal flow
         navigation.reset({
           index: 0,
-          routes: [{ name: 'Onboarding' }],
+          routes: [{ name: 'StartVerification' }],
         });
       }
     }, 2000);

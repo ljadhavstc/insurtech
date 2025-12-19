@@ -17,6 +17,7 @@ import { Button } from '@/components/primitives/Button';
 import { CheckCircle } from '@/components/icons/CheckCircle';
 import { lightTheme, baseColors } from '@/styles/tokens';
 import { ms } from '@/utils/scale';
+import { useScreenDimensions } from '@/utils/useScreenDimensions';
 
 type AuthStackParamList = {
   Success: { message?: string };
@@ -29,12 +30,13 @@ export const SuccessScreen = () => {
   const { t } = useTranslation();
   const navigation = useNavigation<SuccessScreenNavigationProp>();
   const insets = useSafeAreaInsets();
+  const { isLandscape } = useScreenDimensions(); // Get orientation for responsive adjustments
 
   const handleLoginPress = () => {
     navigation.navigate('Login');
   };
 
-  // Responsive sizes
+  // Responsive sizes - orientation-aware
   const outerBoxSize = ms(104);
   const innerBoxSize = ms(48);
   const iconSize = ms(24);

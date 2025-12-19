@@ -15,7 +15,7 @@
 
 import React from 'react';
 import { Pressable, PressableProps, ActivityIndicator } from 'react-native';
-import { ms } from '@/utils/scale';
+import { ms, getOrientationAwareWidth } from '@/utils/scale';
 import { Text } from './Text';
 import { brandColors } from '@/styles/tokens';
 
@@ -89,8 +89,9 @@ export const Button: React.FC<ButtonProps> = ({
   const scaledPaddingHorizontal = ms(sizeConfig.paddingHorizontal);
   const scaledBorderRadius = ms(2);
   const scaledGap = ms(10);
-  // Button width: 343px based on 390px design width (87.95% of screen width)
-  const scaledWidth = fullWidth ? ms(343) : undefined;
+  // Button width: 343px scales up to 428px breakpoint, then stays fixed (boxed layout)
+  // Orientation-aware: In landscape, uses height-based scaling to prevent buttons from becoming too wide
+  const scaledWidth = fullWidth ? getOrientationAwareWidth(343, 428) : undefined;
 
   // Solid variant: Disabled uses #FFC1CD, enabled uses primary color (brand red)
   // Ghost variant: Transparent background with text color

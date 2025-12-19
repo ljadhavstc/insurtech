@@ -6,7 +6,7 @@
  * Uses Tailwind classes only - no StyleSheet.
  */
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, StatusBar, ScrollView } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -14,7 +14,9 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { Text } from '@/components/primitives/Text';
 import { Button } from '@/components/primitives/Button';
 import { ImageCarousel, CarouselSlide } from '@/components/onboarding/ImageCarousel';
-import { s, vs } from '@/utils/scale';
+import { s, vs, ms, getScreenDimensions, getOrientationAwareWidth, getBreakpoint, getOrientation, BREAKPOINTS } from '@/utils/scale';
+import { useScreenDimensions } from '@/utils/useScreenDimensions';
+import { authStore } from '@/stores/authStore';
 
 type OnboardingScreenNavigationProp = StackNavigationProp<any>;
 
@@ -43,6 +45,35 @@ const carouselSlides: CarouselSlide[] = [
 export const OnboardingScreen = () => {
   const navigation = useNavigation<OnboardingScreenNavigationProp>();
   const insets = useSafeAreaInsets();
+  
+  // Check if user has logged in before
+  const hasLoggedInBefore = authStore((state) => state.hasLoggedInBefore);
+
+  // Get orientation-aware dimensions (updates on rotation)
+  const { width: screenWidth, height: screenHeight, orientation, isLandscape } = useScreenDimensions();
+  const breakpoint = getBreakpoint();
+  const buttonWidth = getOrientationAwareWidth(343, 428); // Orientation-aware responsive width
+  const marginEachSide = (screenWidth - buttonWidth) / 2;
+  const baseWidth = 390; // Design base width
+  const scaleFactor = (screenWidth / baseWidth + screenHeight / 844) / 2; // ms() scale factor
+  const isBoxedLayout = screenWidth > BREAKPOINTS.maxContentWidth;
+
+  // Log dimensions for debugging (remove in production)
+  useEffect(() => {
+    console.log('📱 ===== RESPONSIVE DIMENSIONS =====');
+    console.log(`📱 Screen Width: ${screenWidth}px`);
+    console.log(`📱 Screen Height: ${screenHeight}px`);
+    console.log(`📱 Orientation: ${orientation.toUpperCase()}`);
+    console.log(`📱 Breakpoint: ${breakpoint} (${isBoxedLayout ? 'BOXED LAYOUT' : 'SCALING'})`);
+    console.log(`📱 Base Design Width: ${baseWidth}px`);
+    console.log(`📱 Max Content Width: ${BREAKPOINTS.maxContentWidth}px`);
+    console.log(`📱 Scale Factor (ms): ${scaleFactor.toFixed(3)}`);
+    console.log(`🔘 Button Width: ${buttonWidth}px ${isBoxedLayout ? '(FIXED - boxed)' : '(SCALED)'} ${isLandscape ? '(landscape-adjusted)' : ''}`);
+    console.log(`📏 Margin Each Side: ${marginEachSide.toFixed(1)}px`);
+    console.log(`📏 Total Margin: ${(marginEachSide * 2).toFixed(1)}px`);
+    console.log(`✅ Button + Margins: ${(buttonWidth + marginEachSide * 2).toFixed(1)}px (should equal ${screenWidth}px)`);
+    console.log('===================================');
+  }, [screenWidth, screenHeight, buttonWidth, marginEachSide, scaleFactor, breakpoint, isBoxedLayout, orientation, isLandscape]);
 
   const handleLogin = () => {
     navigation.navigate('Auth', { screen: 'Login' });
@@ -100,32 +131,72 @@ export const OnboardingScreen = () => {
             <View className="flex-1 justify-center">
               <ImageCarousel slides={carouselSlides} />
             </View>
+          </View>
 
-            {/* Buttons */}
-            <View 
-              className="gap-sm"
-              style={{ 
-                paddingBottom: Math.max(insets.bottom, s(16))
-              }}
-            >
-              <Button
-                onPress={handleLogin}
-                variant="solid"
-                size="medium"
-                fullWidth
-              >
-                Log in
-              </Button>
-              
-              <Button
-                onPress={handleRegister}
-                variant="ghost"
-                size="medium"
-                fullWidth
-              >
-                Register
-              </Button>
+          {/* Debug Info - Remove in production */}
+          {__DEV__ && (
+            <View className="px-md py-2 bg-gray-100 rounded-md mx-md mb-2">
+              <Text variant="caption" className="text-gray-700 font-mono">
+                📱 Screen: {screenWidth}px × {screenHeight}px{'\n'}
+                📱 Orientation: {orientation.toUpperCase()}{'\n'}
+                📊 Breakpoint: {breakpoint} {isBoxedLayout ? '(BOXED)' : '(SCALING)'}{'\n'}
+                🔘 Button: {buttonWidth}px {isBoxedLayout ? '(FIXED)' : '(scaled from 343px)'} {isLandscape ? '(landscape)' : ''}{'\n'}
+                📏 Margin: {marginEachSide.toFixed(1)}px each side{'\n'}
+                📊 Scale: {scaleFactor.toFixed(3)}x
+              </Text>
             </View>
+          )}
+
+          {/* Buttons Container - Separate from main content for proper centering */}
+          <View 
+            className="gap-sm px-md"
+            style={{ 
+              paddingBottom: Math.max(insets.bottom, s(16))
+            }}
+          >
+            {hasLoggedInBefore ? (
+              // User has logged in before: Login at top, Register at bottom
+              <>
+                <Button
+                  onPress={handleLogin}
+                  variant="solid"
+                  size="medium"
+                  fullWidth
+                >
+                  Log in
+                </Button>
+                
+                <Button
+                  onPress={handleRegister}
+                  variant="ghost"
+                  size="medium"
+                  fullWidth
+                >
+                  Register
+                </Button>
+              </>
+            ) : (
+              // New user: Register at top, Login at bottom
+              <>
+                <Button
+                  onPress={handleRegister}
+                  variant="solid"
+                  size="medium"
+                  fullWidth
+                >
+                  Register
+                </Button>
+                
+                <Button
+                  onPress={handleLogin}
+                  variant="ghost"
+                  size="medium"
+                  fullWidth
+                >
+                  Log in
+                </Button>
+              </>
+            )}
           </View>
         </ScrollView>
       </SafeAreaView>

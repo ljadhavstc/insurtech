@@ -6,13 +6,10 @@
  */
 
 import React, { useRef, useState } from 'react';
-import { View, ScrollView, Dimensions, NativeScrollEvent, NativeSyntheticEvent } from 'react-native';
+import { View, ScrollView, NativeScrollEvent, NativeSyntheticEvent } from 'react-native';
 import { Text } from '@/components/primitives/Text';
-import { s } from '@/utils/scale';
-
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const CARD_WIDTH = s(344);
-const CARD_PADDING = s(36);
+import { s, getOrientationAwareWidth } from '@/utils/scale';
+import { useScreenDimensions } from '@/utils/useScreenDimensions';
 
 export interface CarouselSlide {
   id: string;
@@ -28,10 +25,16 @@ interface ImageCarouselProps {
 export const ImageCarousel: React.FC<ImageCarouselProps> = ({ slides }) => {
   const scrollViewRef = useRef<ScrollView>(null);
   const [activeIndex, setActiveIndex] = useState(0);
+  const { width: screenWidth } = useScreenDimensions(); // Orientation-aware responsive design
+  
+  // Card width: 344px scales up to 428px breakpoint, then stays fixed (boxed layout)
+  // Orientation-aware: In landscape, uses height-based scaling to prevent cards from becoming too wide
+  const cardWidth = getOrientationAwareWidth(344, 428);
+  const cardPadding = s(36);
 
   const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const scrollPosition = event.nativeEvent.contentOffset.x;
-    const index = Math.round(scrollPosition / CARD_WIDTH);
+    const index = Math.round(scrollPosition / cardWidth);
     setActiveIndex(index);
   };
 
@@ -46,10 +49,10 @@ export const ImageCarousel: React.FC<ImageCarouselProps> = ({ slides }) => {
         onScroll={handleScroll}
         scrollEventThrottle={16}
         decelerationRate="fast"
-        snapToInterval={CARD_WIDTH}
+        snapToInterval={cardWidth}
         snapToAlignment="center"
         contentContainerStyle={{
-          paddingHorizontal: (SCREEN_WIDTH - CARD_WIDTH) / 2,
+          paddingHorizontal: (screenWidth - cardWidth) / 2,
         }}
       >
         {slides.map((slide, index) => (
@@ -57,9 +60,9 @@ export const ImageCarousel: React.FC<ImageCarouselProps> = ({ slides }) => {
             key={slide.id}
             className={`bg-theme-background-card border border-theme-border rounded-lg justify-center items-center ${index < slides.length - 1 ? 'mr-6' : ''}`}
             style={{
-              width: CARD_WIDTH,
+              width: cardWidth,
               height: s(350),
-              padding: CARD_PADDING,
+              padding: cardPadding,
             }}
           >
             {/* Image Container */}
