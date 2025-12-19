@@ -10,10 +10,8 @@ import { Providers } from './src/app/providers';
 import { RootNavigator } from '@/navigation/RootNavigator';
 import './global.css'; // NativeWind global styles
 
-// Import mock server to enable API mocking in development
-if (__DEV__) {
-  require('./src/services/mockServer');
-}
+// Import mock server - always available, will use mock in dev or fallback in production
+require('./src/services/mockServer');
 
 function App(): React.JSX.Element {
   const isDarkMode = useColorScheme() === 'dark';

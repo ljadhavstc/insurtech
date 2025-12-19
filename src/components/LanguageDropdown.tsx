@@ -13,7 +13,9 @@
 import React, { useState } from 'react';
 import { Pressable, Modal, FlatList, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text } from './primitives/Text';
+import { ms, vs } from '@/utils/scale';
 
 const languages = [
   { code: 'en', label: 'English' },
@@ -24,6 +26,7 @@ const languages = [
 export const LanguageDropdown: React.FC = () => {
   const { i18n } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
+  const insets = useSafeAreaInsets();
   
   const currentLanguage = languages.find(lang => lang.code === i18n.language) || languages[0];
   const displayLabel = currentLanguage.code === 'ar' ? currentLanguage.label : 'العربية';
@@ -32,6 +35,10 @@ export const LanguageDropdown: React.FC = () => {
     i18n.changeLanguage(code);
     setIsOpen(false);
   };
+
+  // Spacing: extra space at top and bottom, positioned slightly above bottom
+  const bottomSpacing = Math.max(insets.bottom, vs(24)); // At least 24px from bottom
+  const topSpacing = vs(16); // Extra space at top
 
   return (
     <>
@@ -47,7 +54,7 @@ export const LanguageDropdown: React.FC = () => {
       <Modal
         visible={isOpen}
         transparent
-        animationType="fade"
+        animationType="slide"
         onRequestClose={() => setIsOpen(false)}
       >
         <Pressable
@@ -55,17 +62,37 @@ export const LanguageDropdown: React.FC = () => {
           onPress={() => setIsOpen(false)}
         >
           <Pressable onPress={(e) => e.stopPropagation()}>
-            <View className="bg-theme-background rounded-t-2xl max-h-[300px] py-xs">
+            <View 
+              className="bg-theme-background rounded-t-2xl"
+              style={{
+                paddingTop: topSpacing,
+                paddingBottom: bottomSpacing,
+                marginBottom: vs(16), // Position slightly above bottom
+              }}
+            >
+              {/* Title */}
+              <View className="px-md pb-md border-b border-theme-border">
+                <Text variant="h3" className="text-theme-text-primary">
+                  Select Language
+                </Text>
+              </View>
+
               <FlatList
                 data={languages}
                 keyExtractor={(item) => item.code}
+                contentContainerStyle={{
+                  paddingTop: vs(8),
+                }}
                 renderItem={({ item }) => (
                   <Pressable
                     onPress={() => handleSelect(item.code)}
                     className={`
-                      px-md py-3 border-b border-theme-border
+                      px-md py-4 border-b border-theme-border
                       ${item.code === i18n.language ? 'bg-theme-background-secondary' : 'bg-transparent'}
                     `}
+                    style={{
+                      minHeight: vs(56), // Better touch target
+                    }}
                   >
                     <Text
                       variant="body"

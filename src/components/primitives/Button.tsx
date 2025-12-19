@@ -65,9 +65,9 @@ export interface ButtonProps extends Omit<PressableProps, 'style'> {
 }
 
 const sizeMap: Record<ButtonSize, { height: number; paddingVertical: number; paddingHorizontal: number; fontSize: number }> = {
-  small: { height: 40, paddingVertical: 12, paddingHorizontal: 16, fontSize: 14 },
-  medium: { height: 56, paddingVertical: 16, paddingHorizontal: 22, fontSize: 16 },
-  large: { height: 56, paddingVertical: 16, paddingHorizontal: 22, fontSize: 18 },
+  small: { height: 48, paddingVertical: 12, paddingHorizontal: 16, fontSize: 14 },
+  medium: { height: 48, paddingVertical: 12, paddingHorizontal: 16, fontSize: 16 },
+  large: { height: 48, paddingVertical: 12, paddingHorizontal: 16, fontSize: 18 },
 };
 
 export const Button: React.FC<ButtonProps> = ({

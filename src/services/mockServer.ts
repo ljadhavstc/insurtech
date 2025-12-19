@@ -305,72 +305,116 @@ export const mockRefreshToken = async (refreshToken: string) => {
   return tokens;
 };
 
-// Override axios methods for development
-if (__DEV__) {
-  // Store original post method
-  const originalPost = api.post.bind(api);
+// Enable mock server in development OR always enable with fallback
+// In production, it will try real API first, then fallback to mock if unreachable
+const ENABLE_MOCK = true; // Always enable mock server
+const USE_MOCK_FIRST = __DEV__; // In dev, use mock first. In prod, try real API first
+
+// Store original post method
+const originalPost = api.post.bind(api);
+
+// Helper function to get mock response
+const getMockResponse = async (url: string, data?: any): Promise<any> => {
+  let mockResponse;
   
-  // Override post method to intercept auth endpoints
-  api.post = async function(url: string, data?: any, config?: any): Promise<any> {
-    // Check if this is an auth endpoint we should mock
-    const isAuthEndpoint = url.includes('/auth/');
-    
-    if (isAuthEndpoint) {
+  if (url.includes('/auth/login')) {
+    const identifier = data?.phoneNumber || data?.email;
+    mockResponse = await mockLogin(identifier, data?.password);
+  } else if (url.includes('/auth/register')) {
+    mockResponse = await mockRegister(data?.email, data?.password, data?.name);
+  } else if (url.includes('/auth/forgot-password')) {
+    const identifier = data?.mobileNumber || data?.email || data?.phoneNumber;
+    if (!identifier) {
+      throw new Error('Mobile number or email is required');
+    }
+    mockResponse = await mockForgotPassword(identifier);
+  } else if (url.includes('/auth/otp-verify')) {
+    const identifier = data?.mobileNumber || data?.email || data?.phoneNumber;
+    if (!identifier || !data?.otp) {
+      throw new Error('Mobile number/email and OTP are required');
+    }
+    mockResponse = await mockVerifyOTP(identifier, data.otp);
+  } else if (url.includes('/auth/reset-password')) {
+    mockResponse = await mockResetPassword(data?.email || data?.mobileNumber, data?.resetToken, data?.newPassword);
+  } else if (url.includes('/auth/refresh')) {
+    mockResponse = await mockRefreshToken(data?.refreshToken);
+  } else {
+    return null; // Not a mockable endpoint
+  }
+  
+  return {
+    data: mockResponse,
+    status: 200,
+    statusText: 'OK',
+    headers: {},
+    config: {},
+  };
+};
+
+// Override axios post method
+api.post = async function(url: string, data?: any, config?: any): Promise<any> {
+  const isAuthEndpoint = url.includes('/auth/');
+  
+  // In development, use mock first
+  if (USE_MOCK_FIRST && isAuthEndpoint) {
+    try {
+      const mockResponse = await getMockResponse(url, data);
+      if (mockResponse) {
+        return Promise.resolve({ ...mockResponse, config: config || {} });
+      }
+    } catch (error: any) {
+      return Promise.reject({
+        response: {
+          data: { message: error.message },
+          status: 400,
+          statusText: 'Bad Request',
+        },
+        message: error.message,
+      });
+    }
+  }
+  
+  // Try real API first (or if not an auth endpoint)
+  return originalPost(url, data, config).catch(async (error: any) => {
+    // If API fails and it's an auth endpoint, fallback to mock
+    if (isAuthEndpoint && (
+      error.code === 'NETWORK_ERROR' || 
+      error.code === 'ECONNABORTED' ||
+      error.message?.includes('Network') || 
+      error.message?.includes('timeout') ||
+      error.message?.includes('getaddrinfo') ||
+      !error.response || 
+      error.response?.status >= 500 ||
+      error.response?.status === 404
+    )) {
+      console.log('[MOCK SERVER] API unreachable, using mock fallback for:', url);
+      
       try {
-        let mockResponse;
-        
-        if (url.includes('/auth/login')) {
-          const identifier = data?.phoneNumber || data?.email;
-          mockResponse = await mockLogin(identifier, data?.password);
-        } else if (url.includes('/auth/register')) {
-          mockResponse = await mockRegister(data?.email, data?.password, data?.name);
-        } else if (url.includes('/auth/forgot-password')) {
-          const identifier = data?.mobileNumber || data?.email || data?.phoneNumber;
-          if (!identifier) {
-            throw new Error('Mobile number or email is required');
-          }
-          mockResponse = await mockForgotPassword(identifier);
-        } else if (url.includes('/auth/otp-verify')) {
-          const identifier = data?.mobileNumber || data?.email || data?.phoneNumber;
-          if (!identifier || !data?.otp) {
-            throw new Error('Mobile number/email and OTP are required');
-          }
-          mockResponse = await mockVerifyOTP(identifier, data.otp);
-        } else if (url.includes('/auth/reset-password')) {
-          mockResponse = await mockResetPassword(data?.email || data?.mobileNumber, data?.resetToken, data?.newPassword);
-        } else if (url.includes('/auth/refresh')) {
-          mockResponse = await mockRefreshToken(data?.refreshToken);
-        } else {
-          // Unknown auth endpoint, use original
-          return originalPost(url, data, config);
+        const mockResponse = await getMockResponse(url, data);
+        if (mockResponse) {
+          return Promise.resolve({ ...mockResponse, config: config || {} });
         }
-        
-        // Return mock response in axios format
-        return Promise.resolve({
-          data: mockResponse,
-          status: 200,
-          statusText: 'OK',
-          headers: {},
-          config: config || {},
-        });
-      } catch (error: any) {
-        // Return error in axios format
+      } catch (mockError: any) {
         return Promise.reject({
           response: {
-            data: { message: error.message },
+            data: { message: mockError.message },
             status: 400,
             statusText: 'Bad Request',
           },
-          message: error.message,
+          message: mockError.message,
         });
       }
     }
     
-    // For non-auth endpoints, use original post method
-    return originalPost(url, data, config);
-  };
-  
-  console.log('[MOCK SERVER] Initialized - Auth endpoints are being mocked');
+    // Re-throw original error if not handled
+    throw error;
+  });
+};
+
+if (USE_MOCK_FIRST) {
+  console.log('[MOCK SERVER] Initialized - Auth endpoints are being mocked (dev mode)');
+} else {
+  console.log('[MOCK SERVER] Fallback mode - Will use mock if API is unreachable');
 }
 
 export default {
