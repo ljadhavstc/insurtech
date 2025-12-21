@@ -37,7 +37,7 @@
       "mobileTitle": "enter your number",
       "mobileSubtitle": "enter your number to create account.",
       "continue": "continue",
-      "passwordScreenTitle": "set password",
+      "passwordScreenTitle": "create password",
       "passwordTitle": "create password",
       "passwordSubtitle": "your password must contain:",
       "emailScreenTitle": "account registration",
@@ -74,7 +74,7 @@
       "success": "OTP code has been entered successfully."
     },
     "resetPassword": {
-      "screenTitle": "reset password",
+      "screenTitle": "change password",
       "title": "enter new password",
       "subtitle": "your password must contain:",
       "newPassword": "new password",

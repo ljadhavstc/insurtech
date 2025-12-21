@@ -36,11 +36,10 @@ export const SplashScreen = () => {
           routes: [{ name: 'App' }],
         });
       } else {
-        // For testing: Navigate to StartVerification screen after splash
-        // Change this to 'Onboarding' for normal flow
+        // Navigate to Onboarding screen after splash
         navigation.reset({
           index: 0,
-          routes: [{ name: 'StartVerification' }],
+          routes: [{ name: 'Onboarding' }],
         });
       }
     }, 2000);

@@ -16,6 +16,7 @@ import React, { useMemo } from 'react';
 import { View } from 'react-native';
 import { Text } from '../primitives/Text';
 import { InfoIcon } from '../icons';
+import { s } from '@/utils/scale';
 
 export interface MobileNumberWarningProps {
   /**
@@ -41,12 +42,24 @@ export const MobileNumberWarning: React.FC<MobileNumberWarningProps> = ({
   if (!shouldShow) return null;
 
   return (
-    <View className="bg-warning/10 border border-warning rounded-md p-md mb-md">
+    <View
+      style={{
+        backgroundColor: '#AF8521', // toast-fill-feedback-warning-secondary
+        borderRadius: s(2),
+        borderLeftWidth: s(4),
+        borderLeftColor: '#F9D274',
+        width: s(343),
+        
+        paddingHorizontal: s(12),
+        paddingVertical: s(16),
+        marginBottom: s(16), // mb-md equivalent
+      }}
+    >
       <View className="flex-row items-start gap-xs">
-        <InfoIcon width={20} height={20} color="#FFC107" />
-        <View className="flex-1">
-          <Text variant="caption" className="text-warning lowercase">
-            password should not contain your mobile number
+        <InfoIcon width={24} height={24} color="#FFFFFF" />
+        <View className="flex-1 ml-2">
+          <Text variant="caption" className="text-white lowercase">
+            your password cannot contain your mobile number
           </Text>
         </View>
       </View>

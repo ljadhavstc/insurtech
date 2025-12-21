@@ -14,31 +14,34 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { Text } from '@/components/primitives/Text';
 import { Button } from '@/components/primitives/Button';
 import { ImageCarousel, CarouselSlide } from '@/components/onboarding/ImageCarousel';
+import { OnboardingImage1 } from '@/components/onboarding/OnboardingImage1';
+import { OnboardingImage2 } from '@/components/onboarding/OnboardingImage2';
+import { OnboardingImage3 } from '@/components/onboarding/OnboardingImage3';
 import { s, vs, ms, getScreenDimensions, getOrientationAwareWidth, getBreakpoint, getOrientation, BREAKPOINTS } from '@/utils/scale';
 import { useScreenDimensions } from '@/utils/useScreenDimensions';
 import { authStore } from '@/stores/authStore';
 
 type OnboardingScreenNavigationProp = StackNavigationProp<any>;
 
-// Sample carousel slides - replace with actual images
+// Carousel slides with SVG images
 const carouselSlides: CarouselSlide[] = [
   {
     id: '1',
-    image: null, // Will be replaced with actual image component
+    image: <OnboardingImage1 width={s(150)} height={s(90)} />,
     title: 'get instant rewards',
     description: 'access 500+ partner discounts once you login',
   },
   {
     id: '2',
-    image: null,
-    title: 'protect your valuables',
-    description: 'comprehensive insurance coverage for all your needs',
+    image: <OnboardingImage2 width={s(120)} height={s(120)} />,
+    title: 'manage your Policies',
+    description: 'View,renew, and download your insurance instantly',
   },
   {
     id: '3',
-    image: null,
-    title: 'easy claims process',
-    description: 'file and track claims quickly and easily',
+    image: <OnboardingImage3 width={s(120)} height={s(120)} />,
+    title: 'get help Faster',
+    description: '24/7 support & claims assistance just a tap away',
   },
 ];
 
@@ -50,31 +53,9 @@ export const OnboardingScreen = () => {
   const hasLoggedInBefore = authStore((state) => state.hasLoggedInBefore);
 
   // Get orientation-aware dimensions (updates on rotation)
-  const { width: screenWidth, height: screenHeight, orientation, isLandscape } = useScreenDimensions();
-  const breakpoint = getBreakpoint();
-  const buttonWidth = getOrientationAwareWidth(343, 428); // Orientation-aware responsive width
-  const marginEachSide = (screenWidth - buttonWidth) / 2;
-  const baseWidth = 390; // Design base width
-  const scaleFactor = (screenWidth / baseWidth + screenHeight / 844) / 2; // ms() scale factor
-  const isBoxedLayout = screenWidth > BREAKPOINTS.maxContentWidth;
 
   // Log dimensions for debugging (remove in production)
-  useEffect(() => {
-    console.log('📱 ===== RESPONSIVE DIMENSIONS =====');
-    console.log(`📱 Screen Width: ${screenWidth}px`);
-    console.log(`📱 Screen Height: ${screenHeight}px`);
-    console.log(`📱 Orientation: ${orientation.toUpperCase()}`);
-    console.log(`📱 Breakpoint: ${breakpoint} (${isBoxedLayout ? 'BOXED LAYOUT' : 'SCALING'})`);
-    console.log(`📱 Base Design Width: ${baseWidth}px`);
-    console.log(`📱 Max Content Width: ${BREAKPOINTS.maxContentWidth}px`);
-    console.log(`📱 Scale Factor (ms): ${scaleFactor.toFixed(3)}`);
-    console.log(`🔘 Button Width: ${buttonWidth}px ${isBoxedLayout ? '(FIXED - boxed)' : '(SCALED)'} ${isLandscape ? '(landscape-adjusted)' : ''}`);
-    console.log(`📏 Margin Each Side: ${marginEachSide.toFixed(1)}px`);
-    console.log(`📏 Total Margin: ${(marginEachSide * 2).toFixed(1)}px`);
-    console.log(`✅ Button + Margins: ${(buttonWidth + marginEachSide * 2).toFixed(1)}px (should equal ${screenWidth}px)`);
-    console.log('===================================');
-  }, [screenWidth, screenHeight, buttonWidth, marginEachSide, scaleFactor, breakpoint, isBoxedLayout, orientation, isLandscape]);
-
+  
   const handleLogin = () => {
     navigation.navigate('Auth', { screen: 'Login' });
   };
@@ -108,33 +89,39 @@ export const OnboardingScreen = () => {
         </View>
 
         {/* Main Content */}
-        <View className="flex-1 px-6 pt-6 gap-9">
-            {/* Title Section */}
-            <View className="gap-8">
-              <View className="items-center">
-                <Text variant="onboardingTitle" className="text-brand-purple text-center">
-                  name
-                </Text>
-              </View>
-
-              <View className="gap-2">
-                <Text variant="onboardingSubtitle" className="text-theme-text-primary">
-                  welcome to product name
-                </Text>
-                <Text variant="onboardingDescription" className="text-theme-text-secondary">
-                  one app to insure all your valuables
-                </Text>
-              </View>
+        <View 
+          className="flex-1"
+          style={{
+            paddingHorizontal: s(23), // onboardingContentPadding
+            paddingTop: s(24),
+            gap: s(36), // onboardingContentGap
+          }}
+        >
+            {/* Title Section - Left aligned */}
+            <View>
+              <Text variant="onboardingTitle" className="text-brand-purple text-left">
+                name
+              </Text>
             </View>
 
             {/* Image Carousel */}
-            <View className="flex-1 justify-center">
+            <View className="flex-1 justify-center" style={{ minHeight: s(350) }}>
               <ImageCarousel slides={carouselSlides} />
+            </View>
+
+            {/* Subtitle and Description - Below carousel */}
+            <View style={{ gap: s(8) }}>
+              <Text variant="onboardingSubtitle" className="text-theme-text-primary text-left">
+                welcome to product name
+              </Text>
+              <Text variant="onboardingDescription" className="text-theme-text-secondary text-left">
+                one app to insure all your valuables
+              </Text>
             </View>
           </View>
 
           {/* Debug Info - Remove in production */}
-          {__DEV__ && (
+          {/* {__DEV__ && (
             <View className="px-md py-2 bg-gray-100 rounded-md mx-md mb-2">
               <Text variant="caption" className="text-gray-700 font-mono">
                 📱 Screen: {screenWidth}px × {screenHeight}px{'\n'}
@@ -145,11 +132,11 @@ export const OnboardingScreen = () => {
                 📊 Scale: {scaleFactor.toFixed(3)}x
               </Text>
             </View>
-          )}
+          )} */}
 
           {/* Buttons Container - Separate from main content for proper centering */}
           <View 
-            className="gap-sm px-md"
+            className="gap-sm px-md mt-10"
             style={{ 
               paddingBottom: Math.max(insets.bottom, s(16))
             }}

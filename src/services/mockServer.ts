@@ -538,11 +538,74 @@ export const mockStartVerification = async () => {
 // Enable mock server in development OR always enable with fallback
 // In production, it will try real API first, then fallback to mock if unreachable
 const ENABLE_MOCK = true; // Always enable mock server
-const USE_MOCK_FIRST = __DEV__; // In dev, use mock first. In prod, try real API first
+
+// FORCE_MOCK_MODE: Set to true to always use mock server first (even in production builds)
+// This is useful for testing APKs without a backend server
+// When true: APK will use mock server immediately, skipping real API attempts
+// When false: APK will try real API first, then fallback to mock if unreachable
+const FORCE_MOCK_MODE = true; // ✅ Currently enabled - GitHub Actions builds will use mock server first
+
+// USE_MOCK_FIRST: Determines if mock should be used before trying real API
+// In dev mode (__DEV__ = true) OR when FORCE_MOCK_MODE = true, mock is used first
+const USE_MOCK_FIRST = __DEV__ || FORCE_MOCK_MODE;
 
 // Store original methods
 const originalPost = api.post.bind(api);
 const originalGet = api.get.bind(api);
+
+// Helper function to detect if error is a network/connection error
+const isNetworkError = (error: any): boolean => {
+  // Check error codes
+  const networkErrorCodes = [
+    'NETWORK_ERROR',
+    'ERR_NETWORK',
+    'ECONNABORTED',
+    'ECONNREFUSED',
+    'ENOTFOUND',
+    'ETIMEDOUT',
+    'EAI_AGAIN',
+  ];
+  
+  if (error.code && networkErrorCodes.includes(error.code)) {
+    return true;
+  }
+  
+  // Check error message
+  const errorMessage = error.message?.toLowerCase() || '';
+  const networkKeywords = [
+    'network',
+    'timeout',
+    'getaddrinfo',
+    'econnrefused',
+    'enotfound',
+    'failed to connect',
+    'connection refused',
+    'no internet',
+    'network request failed',
+    'networkerror',
+  ];
+  
+  if (networkKeywords.some(keyword => errorMessage.includes(keyword))) {
+    return true;
+  }
+  
+  // If no response and it's a request error, likely network issue
+  if (!error.response && error.request) {
+    return true;
+  }
+  
+  // Check for DNS/connection errors in response status
+  if (error.response?.status === 0 || error.response?.status >= 500) {
+    return true;
+  }
+  
+  // 404 on API base URL likely means API doesn't exist
+  if (error.response?.status === 404 && error.config?.url?.includes('/auth/')) {
+    return true;
+  }
+  
+  return false;
+};
 
 // Helper function to get mock response
 const getMockResponse = async (url: string, data?: any): Promise<any> => {
@@ -624,17 +687,8 @@ api.post = async function(url: string, data?: any, config?: any): Promise<any> {
   // Try real API first (or if not an auth endpoint)
   return originalPost(url, data, config).catch(async (error: any) => {
     // If API fails and it's an auth endpoint, fallback to mock
-    if (isAuthEndpoint && (
-      error.code === 'NETWORK_ERROR' || 
-      error.code === 'ECONNABORTED' ||
-      error.message?.includes('Network') || 
-      error.message?.includes('timeout') ||
-      error.message?.includes('getaddrinfo') ||
-      !error.response || 
-      error.response?.status >= 500 ||
-      error.response?.status === 404
-    )) {
-      console.log('[MOCK SERVER] API unreachable, using mock fallback for:', url);
+    if (isAuthEndpoint && isNetworkError(error)) {
+      console.log('[MOCK SERVER] API unreachable, using mock fallback for:', url, error.code || error.message);
       
       try {
         const mockResponse = await getMockResponse(url, data);
@@ -688,17 +742,8 @@ api.get = async function(url: string, config?: any): Promise<any> {
   // For other GET requests, try real API first
   return originalGet(url, config).catch(async (error: any) => {
     // If API fails and it's an auth endpoint, fallback to mock
-    if (isAuthEndpoint && (
-      error.code === 'NETWORK_ERROR' || 
-      error.code === 'ECONNABORTED' ||
-      error.message?.includes('Network') || 
-      error.message?.includes('timeout') ||
-      error.message?.includes('getaddrinfo') ||
-      !error.response || 
-      error.response?.status >= 500 ||
-      error.response?.status === 404
-    )) {
-      console.log('[MOCK SERVER] API unreachable, using mock fallback for GET:', url);
+    if (isAuthEndpoint && isNetworkError(error)) {
+      console.log('[MOCK SERVER] API unreachable, using mock fallback for GET:', url, error.code || error.message);
       // Could add more GET endpoint handling here if needed
     }
     
@@ -708,7 +753,11 @@ api.get = async function(url: string, config?: any): Promise<any> {
 };
 
 if (USE_MOCK_FIRST) {
-  console.log('[MOCK SERVER] Initialized - Auth endpoints are being mocked (dev mode)');
+  if (FORCE_MOCK_MODE) {
+    console.log('[MOCK SERVER] ✅ Initialized - FORCE_MOCK_MODE enabled - Auth endpoints will use mock server first (production build)');
+  } else {
+    console.log('[MOCK SERVER] ✅ Initialized - Auth endpoints are being mocked (dev mode)');
+  }
 } else {
   console.log('[MOCK SERVER] Fallback mode - Will use mock if API is unreachable');
 }

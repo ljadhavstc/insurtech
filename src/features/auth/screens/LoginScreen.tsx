@@ -125,7 +125,7 @@ export const LoginScreen = () => {
               
               {/* Title */}
               <Text variant="onboardingHeader" className="text-theme-text-primary">
-                Login
+                login
               </Text>
               
               {/* Language Dropdown */}
