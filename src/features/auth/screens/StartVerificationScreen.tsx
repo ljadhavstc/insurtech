@@ -20,6 +20,7 @@ import { vs, s } from '@/utils/scale';
 import { useScreenDimensions } from '@/utils/useScreenDimensions';
 import { lightTheme, brandColors } from '@/styles/tokens';
 import { Icon } from '@/components/icons';
+import { saveRegistrationStep } from '@/services/registrationStepService';
 
 type AuthStackParamList = {
   StartVerification: undefined;
@@ -179,6 +180,12 @@ export const StartVerificationScreen: React.FC = () => {
       
       // Simulate user data capture delay
       await new Promise(resolve => setTimeout(resolve, 1000));
+
+      // Save step data for registration flow
+      await saveRegistrationStep('cpr-verification', {
+        started: true,
+        timestamp: Date.now(),
+      });
 
       // Navigate to verification progress screen
       navigation.navigate('VerificationProgress');

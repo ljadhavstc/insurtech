@@ -220,6 +220,14 @@ export const MobileNumberInputScreen: React.FC<MobileNumberInputScreenProps> = (
 
       showToast({ type: 'success', message: response.data.message || 'Code sent successfully' });
       
+      // Save step data for registration flow
+      if (config.purpose === 'registration') {
+        await saveRegistrationStep('mobile-input', {
+          mobileNumber: data.mobileNumber,
+          response: response.data,
+        });
+      }
+      
       // If custom onSuccess callback provided, use it
       if (finalConfig.onSuccess) {
         finalConfig.onSuccess(data.mobileNumber, response.data);

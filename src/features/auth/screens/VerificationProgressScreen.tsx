@@ -18,11 +18,19 @@ import { useToast } from '@/components/Toast';
 import { Text } from '@/components/primitives/Text';
 import { Button } from '@/components/primitives/Button';
 import { LanguageDropdown } from '@/components/LanguageDropdown';
+import { BottomActionSheet } from '@/components/BottomActionSheet';
 import { vs, s, ms } from '@/utils/scale';
 import { useScreenDimensions } from '@/utils/useScreenDimensions';
 import { lightTheme, baseColors } from '@/styles/tokens';
 import { Icon } from '@/components/icons';
 import { CheckCircle } from '@/components/icons/CheckCircle';
+import { 
+  checkBiometricAvailability, 
+  enableBiometric, 
+  getBiometricName 
+} from '@/services/biometricService';
+import { authStore } from '@/stores/authStore';
+import { saveRegistrationStep, clearRegistrationSteps } from '@/services/registrationStepService';
 
 type AuthStackParamList = {
   VerificationProgress: undefined;
@@ -59,6 +67,8 @@ export const VerificationProgressScreen: React.FC = () => {
   const navigation = useNavigation<VerificationProgressScreenNavigationProp>();
   const { showToast } = useToast();
   const { isLandscape } = useScreenDimensions();
+  const { token, refreshToken } = authStore();
+  const setBiometricEnabled = authStore((state) => state.setBiometricEnabled);
 
   const [steps, setSteps] = useState<VerificationStep[]>(
     VERIFICATION_STEPS.map((step, index) => ({ 
@@ -67,6 +77,10 @@ export const VerificationProgressScreen: React.FC = () => {
     }))
   );
   const [isComplete, setIsComplete] = useState(false);
+  const [showBiometricSheet, setShowBiometricSheet] = useState(false);
+  const [biometricAvailable, setBiometricAvailable] = useState(false);
+  const [biometricType, setBiometricType] = useState<string>('');
+  const [checkingBiometric, setCheckingBiometric] = useState(false);
 
   // Simulate step completion (mock - will be replaced with Jumio API check)
   useEffect(() => {
@@ -91,6 +105,9 @@ export const VerificationProgressScreen: React.FC = () => {
         setIsComplete(true);
         return updated;
       });
+      
+      // After CPR verification is complete, check biometric and show prompt
+      checkBiometricAndShowPrompt();
     }, 6000);
 
     timers.push(timer2, timer3);
@@ -99,6 +116,65 @@ export const VerificationProgressScreen: React.FC = () => {
       timers.forEach(timer => clearTimeout(timer));
     };
   }, []);
+
+  const checkBiometricAndShowPrompt = async () => {
+    try {
+      setCheckingBiometric(true);
+      const result = await checkBiometricAvailability();
+      setBiometricAvailable(result.available);
+      if (result.available && result.biometryType) {
+        setBiometricType(getBiometricName(result.biometryType));
+        // Show biometric prompt after a short delay
+        setTimeout(() => {
+          setShowBiometricSheet(true);
+        }, 500);
+      }
+    } catch (error) {
+      console.warn('Error checking biometric:', error);
+    } finally {
+      setCheckingBiometric(false);
+    }
+  };
+
+  const handleEnableBiometric = async () => {
+    if (!token) {
+      showToast({
+        type: 'error',
+        message: t('auth.biometric.noToken', 'Unable to enable biometric. Please login again.'),
+      });
+      return;
+    }
+
+    try {
+      const result = await enableBiometric(token, refreshToken || undefined);
+      if (result.success) {
+        setBiometricEnabled(true);
+        showToast({
+          type: 'success',
+          message: t('auth.biometric.enabled', { type: biometricType }),
+        });
+      } else {
+        showToast({
+          type: 'error',
+          message: result.error || t('auth.biometric.enableFailed', 'Failed to enable biometric'),
+        });
+      }
+    } catch (error: any) {
+      showToast({
+        type: 'error',
+        message: error.message || t('auth.biometric.enableFailed', 'Failed to enable biometric'),
+      });
+    }
+    setShowBiometricSheet(false);
+  };
+
+  const handleSkipBiometric = () => {
+    setShowBiometricSheet(false);
+    // Save registration as completed
+    saveRegistrationStep('completed', { timestamp: Date.now() });
+    // Clear registration steps after completion
+    clearRegistrationSteps();
+  };
 
   const renderStepIcon = (step: VerificationStep) => {
     if (step.status === 'completed') {
@@ -155,6 +231,10 @@ export const VerificationProgressScreen: React.FC = () => {
   };
 
   const handleHomePress = () => {
+    // Save registration as completed
+    saveRegistrationStep('completed', { timestamp: Date.now() });
+    // Clear registration steps after completion
+    clearRegistrationSteps();
     // Navigate to home/main app
     navigation.navigate('Home');
   };
@@ -331,6 +411,18 @@ export const VerificationProgressScreen: React.FC = () => {
           </Button>
         </View>
       </KeyboardAvoidingView>
+
+      {/* Biometric Enable Action Sheet */}
+      <BottomActionSheet
+        visible={showBiometricSheet && biometricAvailable}
+        onClose={() => setShowBiometricSheet(false)}
+        title={t('auth.biometric.enableTitle', { type: biometricType })}
+        description={t('auth.biometric.enableDescription', { type: biometricType })}
+        primaryActionText={t('auth.biometric.enable', 'Enable')}
+        secondaryActionText={t('common.cancel', 'Cancel')}
+        onPrimaryAction={handleEnableBiometric}
+        onSecondaryAction={handleSkipBiometric}
+      />
     </View>
   );
 };

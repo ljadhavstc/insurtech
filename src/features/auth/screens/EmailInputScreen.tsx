@@ -6,8 +6,8 @@
  * Clicking a suggestion auto-fills the domain in the email input.
  */
 
-import React, { useState } from 'react';
-import { View, ScrollView, KeyboardAvoidingView, Platform, StatusBar, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, ScrollView, KeyboardAvoidingView, Platform, StatusBar, TouchableOpacity, Switch } from 'react-native';
 import { useForm, Controller } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
@@ -19,10 +19,16 @@ import { FormField } from '@/components/form/FormField';
 import { LanguageDropdown } from '@/components/LanguageDropdown';
 import { vs } from '@/utils/scale';
 import { useScreenDimensions } from '@/utils/useScreenDimensions';
-import { lightTheme } from '@/styles/tokens';
+import { lightTheme, baseColors } from '@/styles/tokens';
 import { Icon } from '@/components/icons';
 import api from '@/services/api';
 import { authStore } from '@/stores/authStore';
+import { 
+  checkBiometricAvailability, 
+  enableBiometric, 
+  getBiometricName 
+} from '@/services/biometricService';
+import { saveRegistrationStep } from '@/services/registrationStepService';
 
 type EmailInputFormData = {
   email: string;
@@ -51,10 +57,33 @@ export const EmailInputScreen: React.FC = () => {
   const route = useRoute<EmailInputScreenRouteProp>();
   const { showToast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [enableBiometricLogin, setEnableBiometricLogin] = useState(false);
+  const [biometricAvailable, setBiometricAvailable] = useState(false);
+  const [biometricType, setBiometricType] = useState<string>('');
+  const [checkingBiometric, setCheckingBiometric] = useState(true);
   const login = authStore((state) => state.login);
+  const setBiometricEnabled = authStore((state) => state.setBiometricEnabled);
   const { isLandscape } = useScreenDimensions();
 
   const { mobileNumber, password, resetToken } = route.params || {};
+
+  // Check biometric availability on mount
+  useEffect(() => {
+    const checkBiometric = async () => {
+      try {
+        const result = await checkBiometricAvailability();
+        setBiometricAvailable(result.available);
+        if (result.available && result.biometryType) {
+          setBiometricType(getBiometricName(result.biometryType));
+        }
+      } catch (error) {
+        setBiometricAvailable(false);
+      } finally {
+        setCheckingBiometric(false);
+      }
+    };
+    checkBiometric();
+  }, []);
 
   const {
     control,
@@ -112,9 +141,19 @@ export const EmailInputScreen: React.FC = () => {
 
       showToast({ type: 'success', message: response.data.message || 'Registration completed successfully' });
       
+      // Save step data for registration flow
+      await saveRegistrationStep('email-input', {
+        mobileNumber,
+        email: data.email,
+        response: response.data,
+      });
+      
       // Auto-login if user data is returned
       if (response.data.user && response.data.token) {
         login(response.data.user, response.data.token, response.data.refreshToken);
+        
+        // Note: Biometric will be enabled after CPR verification, not here
+        // The toggle in this screen is just for preference
       }
       
       // Navigate to start verification screen instead of success
@@ -227,6 +266,29 @@ export const EmailInputScreen: React.FC = () => {
                 ))}
               </View>
             </View>
+
+            {/* Biometric Login Toggle */}
+            {!checkingBiometric && biometricAvailable && (
+              <View className="gap-sm pt-md">
+                <View className="flex-row items-center justify-between p-3 border border-theme-border rounded-sm bg-theme-background">
+                  <View className="flex-1 pr-3">
+                    <Text variant="body" className="text-theme-text-primary mb-1">
+                      {t('auth.biometric.enableTitle', { type: biometricType })}
+                    </Text>
+                    <Text variant="bodySmall" className="text-theme-text-secondary">
+                      {t('auth.biometric.enableDescription', { type: biometricType })}
+                    </Text>
+                  </View>
+                  <Switch
+                    value={enableBiometricLogin}
+                    onValueChange={setEnableBiometricLogin}
+                    trackColor={{ false: '#E5E7EB', true: baseColors.primary }}
+                    thumbColor={enableBiometricLogin ? '#FFFFFF' : '#F3F4F6'}
+                    ios_backgroundColor="#E5E7EB"
+                  />
+                </View>
+              </View>
+            )}
 
             {/* Buttons */}
             <View className="gap-sm pt-md pb-md">

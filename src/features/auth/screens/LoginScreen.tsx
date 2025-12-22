@@ -5,7 +5,7 @@
  * Uses phone number and password fields with react-hook-form for validation.
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, ScrollView, KeyboardAvoidingView, Platform, StatusBar, TouchableOpacity } from 'react-native';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
@@ -22,6 +22,14 @@ import { vs } from '@/utils/scale';
 import { useScreenDimensions } from '@/utils/useScreenDimensions';
 import { lightTheme } from '@/styles/tokens';
 import { Icon } from '@/components/icons';
+import { 
+  authenticateWithBiometric, 
+  isBiometricEnabled, 
+  checkBiometricAvailability,
+  getBiometricName,
+  enableBiometric,
+  disableBiometric
+} from '@/services/biometricService';
 
 type AuthStackParamList = {
   Login: undefined;
@@ -41,8 +49,35 @@ export const LoginScreen = () => {
   const navigation = useNavigation<LoginScreenNavigationProp>();
   const { showToast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [biometricLoading, setBiometricLoading] = useState(false);
+  const [biometricAvailable, setBiometricAvailable] = useState(false);
+  const [biometricEnabled, setBiometricEnabled] = useState(false);
+  const [biometricType, setBiometricType] = useState<string>('');
   const login = authStore((state) => state.login);
   const { isLandscape } = useScreenDimensions(); // Orientation-aware responsive design
+
+  // Check biometric availability and status on mount
+  useEffect(() => {
+    const checkBiometric = async () => {
+      try {
+        const [availability, enabled] = await Promise.all([
+          checkBiometricAvailability(),
+          isBiometricEnabled(),
+        ]);
+        
+        setBiometricAvailable(availability.available);
+        setBiometricEnabled(enabled);
+        
+        if (availability.available && availability.biometryType) {
+          setBiometricType(getBiometricName(availability.biometryType));
+        }
+      } catch (error) {
+        setBiometricAvailable(false);
+        setBiometricEnabled(false);
+      }
+    };
+    checkBiometric();
+  }, []);
 
   const {
     control,
@@ -81,6 +116,16 @@ export const LoginScreen = () => {
       const { user, token, refreshToken } = response.data;
       login(user, token, refreshToken);
       
+      // If biometric is available and enabled, store the JWT token for future biometric login
+      if (biometricAvailable && biometricEnabled) {
+        try {
+          await enableBiometric(token, refreshToken);
+        } catch (error) {
+          // Don't fail login if biometric storage fails
+          console.warn('Failed to store biometric token:', error);
+        }
+      }
+      
       showToast({ type: 'success', message: 'Login successful!' });
     } catch (error: any) {
       showToast({
@@ -89,6 +134,64 @@ export const LoginScreen = () => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleBiometricLogin = async () => {
+    try {
+      setBiometricLoading(true);
+      
+      const result = await authenticateWithBiometric();
+      
+      if (!result.success || !result.token) {
+        showToast({
+          type: 'error',
+          message: result.error || t('auth.biometric.authFailed', 'Biometric authentication failed'),
+        });
+        return;
+      }
+
+      // Use the stored JWT token directly - verify it's still valid
+      // In a real app, you might want to verify the token with the backend
+      // For now, we'll use the token directly and let the API handle validation
+      
+      // Get user info from token (decode JWT payload) or make a verify call
+      try {
+        // Verify token is still valid by making an API call
+        // This is a simple approach - in production you might decode JWT client-side
+        const verifyResponse = await api.get('/auth/verify', {
+          headers: {
+            Authorization: `Bearer ${result.token}`,
+          },
+        });
+
+        if (verifyResponse.data.user) {
+          // Token is valid, login with stored token
+          login(verifyResponse.data.user, result.token, result.refreshToken);
+          showToast({ type: 'success', message: t('auth.biometric.loginSuccess', 'Login successful!') });
+        } else {
+          throw new Error('Invalid token');
+        }
+      } catch (verifyError: any) {
+        // Token might be expired, try to refresh or show error
+        showToast({
+          type: 'error',
+          message: t('auth.biometric.tokenExpired', 'Session expired. Please login again.'),
+        });
+        // Optionally disable biometric if token is invalid
+        await disableBiometric();
+        setBiometricEnabled(false);
+      }
+    } catch (error: any) {
+      // Don't show error if user cancelled
+      if (!error.message?.includes('cancel') && !error.message?.includes('UserCancel')) {
+        showToast({
+          type: 'error',
+          message: error.response?.data?.message || error.message || t('auth.biometric.loginFailed', 'Biometric login failed'),
+        });
+      }
+    } finally {
+      setBiometricLoading(false);
     }
   };
 
@@ -165,6 +268,45 @@ export const LoginScreen = () => {
 
             {/* Buttons */}
             <View className="gap-sm pt-md pb-md">
+              {/* Biometric Login Button */}
+              {biometricAvailable && biometricEnabled && (
+                <TouchableOpacity
+                  onPress={handleBiometricLogin}
+                  disabled={biometricLoading}
+                  className="mb-2 p-4 border border-theme-border rounded-sm bg-theme-background items-center justify-center"
+                  style={{
+                    minHeight: 56,
+                    opacity: biometricLoading ? 0.6 : 1,
+                  }}
+                  testID="biometric-login-button"
+                >
+                  <View className="flex-row items-center gap-2">
+                    {biometricLoading ? (
+                      <Text variant="body" className="text-theme-text-primary">
+                        {t('common.loading', 'Loading...')}
+                      </Text>
+                    ) : (
+                      <>
+                        <Text variant="body" className="text-theme-text-primary">
+                          {t('auth.biometric.loginWith', { type: biometricType })}
+                        </Text>
+                      </>
+                    )}
+                  </View>
+                </TouchableOpacity>
+              )}
+
+              {/* Divider */}
+              {biometricAvailable && biometricEnabled && (
+                <View className="flex-row items-center my-2">
+                  <View className="flex-1 h-px bg-theme-border" />
+                  <Text variant="bodySmall" className="px-3 text-theme-text-secondary">
+                    {t('auth.biometric.or', 'or')}
+                  </Text>
+                  <View className="flex-1 h-px bg-theme-border" />
+                </View>
+              )}
+
               <Button
                 variant="solid"
                 size="medium"

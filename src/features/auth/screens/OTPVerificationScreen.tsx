@@ -22,6 +22,7 @@ import { vs } from '@/utils/scale';
 import { useScreenDimensions } from '@/utils/useScreenDimensions';
 import { lightTheme } from '@/styles/tokens';
 import { Icon } from '@/components/icons';
+import { saveRegistrationStep } from '@/services/registrationStepService';
 
 type AuthStackParamList = {
   OTPVerification: { mobileNumber?: string; email?: string; purpose?: 'password-reset' | 'verification' | 'registration' };
@@ -132,6 +133,16 @@ export const OTPVerificationScreen = () => {
       // Show success state
       setIsSuccess(true);
       showToast({ type: 'success', message: response.data.message || t('auth.otpVerification.success') });
+
+      // Save step data for registration flow
+      if (purpose === 'registration') {
+        await saveRegistrationStep('otp-verification', {
+          mobileNumber: route.params?.mobileNumber,
+          email: route.params?.email,
+          resetToken: response.data.resetToken || response.data.verificationToken,
+          response: response.data,
+        });
+      }
 
       // Navigate after a short delay to show success state
       setTimeout(() => {

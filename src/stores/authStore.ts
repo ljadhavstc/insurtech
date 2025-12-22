@@ -21,7 +21,8 @@ interface AuthState {
   token: string | null;
   refreshToken: string | null;
   isAuthenticated: boolean;
-  hasLoggedInBefore: boolean; // Add this
+  hasLoggedInBefore: boolean;
+  biometricEnabled: boolean; // Track if user has enabled biometric
   
   // Actions
   setTokens: (token: string, refreshToken: string) => void;
@@ -29,6 +30,7 @@ interface AuthState {
   login: (user: User, token: string, refreshToken: string) => void;
   logout: () => void;
   updateUser: (user: Partial<User>) => void;
+  setBiometricEnabled: (enabled: boolean) => void;
 }
 
 export const authStore = create<AuthState>()(
@@ -39,7 +41,8 @@ export const authStore = create<AuthState>()(
       token: null,
       refreshToken: null,
       isAuthenticated: false,
-      hasLoggedInBefore: false, // Add this
+      hasLoggedInBefore: false,
+      biometricEnabled: false,
 
       // Actions
       setTokens: (token, refreshToken) => {
@@ -56,7 +59,7 @@ export const authStore = create<AuthState>()(
           token,
           refreshToken,
           isAuthenticated: true,
-          hasLoggedInBefore: true, // Set to true when user logs in
+          hasLoggedInBefore: true,
         });
       },
 
@@ -67,6 +70,7 @@ export const authStore = create<AuthState>()(
           refreshToken: null,
           isAuthenticated: false,
           // Keep hasLoggedInBefore as true even after logout
+          // Keep biometricEnabled as is (user preference persists)
         });
       },
 
@@ -74,6 +78,10 @@ export const authStore = create<AuthState>()(
         set((state) => ({
           user: state.user ? { ...state.user, ...userUpdates } : null,
         }));
+      },
+
+      setBiometricEnabled: (enabled) => {
+        set({ biometricEnabled: enabled });
       },
     }),
     {
@@ -84,7 +92,8 @@ export const authStore = create<AuthState>()(
         token: state.token,
         refreshToken: state.refreshToken,
         isAuthenticated: state.isAuthenticated,
-        hasLoggedInBefore: state.hasLoggedInBefore, // Persist this
+        hasLoggedInBefore: state.hasLoggedInBefore,
+        biometricEnabled: state.biometricEnabled,
       }),
     }
   )

@@ -29,6 +29,7 @@ import { useScreenDimensions } from '@/utils/useScreenDimensions';
 import { lightTheme } from '@/styles/tokens';
 import { Icon } from '@/components/icons';
 import { authStore } from '@/stores/authStore';
+import { saveRegistrationStep } from '@/services/registrationStepService';
 
 export type PasswordSetupPurpose = 'password-reset' | 'registration' | 'password-change';
 
@@ -278,6 +279,17 @@ export const PasswordSetupScreen: React.FC = () => {
       }
 
       showToast({ type: 'success', message: response.data.message || 'Password set successfully' });
+      
+      // Save step data for registration flow
+      if (config.purpose === 'registration') {
+        await saveRegistrationStep('password-setup', {
+          mobileNumber: config.mobileNumber,
+          email: config.email,
+          password: data.newPassword, // Note: In production, don't store password in plain text
+          resetToken: config.resetToken,
+          response: response.data,
+        });
+      }
       
       // If custom onSuccess callback provided, use it
       if (finalConfig.onSuccess) {
