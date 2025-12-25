@@ -23,7 +23,7 @@
       "email": "Email",
       "password": "Password",
       "confirmPassword": "Confirm Password",
-      "registerButton": "Sign Up",
+      "registerButton": "register",
       "haveAccount": "Already have an account?",
       "signIn": "Sign In",
       "nameRequired": "Name is required",

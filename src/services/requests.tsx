@@ -208,3 +208,212 @@ export const logCustomerStepRequest = async (
   return response.data;
 };
 
+/**
+ * Generate OTP API
+ * POST /customer/generate-otp
+ * 
+ * @param mobileNumber - Mobile number to send OTP to
+ */
+export interface GenerateOTPRequest {
+  mobile_number: string;
+}
+
+export interface GenerateOTPResponse {
+  success?: boolean;
+  message?: string;
+  otp?: string; // May be included in dev/staging
+  [key: string]: any;
+}
+
+export const generateOTPRequest = async (mobileNumber: string): Promise<GenerateOTPResponse> => {
+  // Validate mobile number
+  const mobileValidation = validateMobileNumber(mobileNumber);
+  if (!mobileValidation.isValid || !mobileValidation.sanitized) {
+    throw new Error(mobileValidation.error || 'Invalid mobile number');
+  }
+
+  const response = await makeRequest<GenerateOTPResponse>(
+    'POST',
+    '/customer/generate-otp',
+    {
+      mobile_number: mobileValidation.sanitized,
+    }
+  );
+
+  return response.data;
+};
+
+/**
+ * Verify OTP API
+ * POST /customer/verify-otp
+ * 
+ * @param mobileNumber - Mobile number that received the OTP
+ * @param pin - OTP code (4 digits)
+ */
+export interface VerifyOTPRequest {
+  mobile_number: string;
+  pin: string;
+}
+
+export interface VerifyOTPResponse {
+  success?: boolean;
+  message?: string;
+  token?: string;
+  resetToken?: string;
+  verificationToken?: string;
+  [key: string]: any;
+}
+
+export const verifyOTPRequest = async (mobileNumber: string, pin: string): Promise<VerifyOTPResponse> => {
+  // Validate mobile number
+  const mobileValidation = validateMobileNumber(mobileNumber);
+  if (!mobileValidation.isValid || !mobileValidation.sanitized) {
+    throw new Error(mobileValidation.error || 'Invalid mobile number');
+  }
+
+  // Validate OTP (pin) - should be 4 digits
+  if (!pin || typeof pin !== 'string') {
+    throw new Error('OTP code is required');
+  }
+
+  const pinTrimmed = pin.trim();
+  const pinRegex = /^[0-9]{4}$/;
+  if (!pinRegex.test(pinTrimmed)) {
+    throw new Error('OTP code must be 4 digits');
+  }
+
+  const response = await makeRequest<VerifyOTPResponse>(
+    'POST',
+    '/customer/verify-otp',
+    {
+      mobile_number: mobileValidation.sanitized,
+      pin: pinTrimmed,
+    }
+  );
+
+  return response.data;
+};
+
+/**
+ * Resend OTP API
+ * POST /customer/resend-otp
+ * 
+ * @param mobileNumber - Mobile number to resend OTP to
+ */
+export interface ResendOTPRequest {
+  mobile_number: string;
+}
+
+export interface ResendOTPResponse {
+  success?: boolean;
+  message?: string;
+  otp?: string; // May be included in dev/staging
+  [key: string]: any;
+}
+
+export const resendOTPRequest = async (mobileNumber: string): Promise<ResendOTPResponse> => {
+  // Validate mobile number
+  const mobileValidation = validateMobileNumber(mobileNumber);
+  if (!mobileValidation.isValid || !mobileValidation.sanitized) {
+    throw new Error(mobileValidation.error || 'Invalid mobile number');
+  }
+
+  const response = await makeRequest<ResendOTPResponse>(
+    'POST',
+    '/customer/resend-otp',
+    {
+      mobile_number: mobileValidation.sanitized,
+    }
+  );
+
+  return response.data;
+};
+
+/**
+ * Forgot Password API (Reset Password)
+ * POST /customer/forgot-password
+ * 
+ * @param mobileNumber - Customer mobile number (username)
+ * @param newPassword - New password to set
+ */
+export interface ForgotPasswordRequest {
+  username: string;
+  password: string;
+}
+
+export interface ForgotPasswordResponse {
+  success?: boolean;
+  status?: string;
+  message?: string;
+  data?: {
+    status?: string;
+    message?: string;
+  };
+  [key: string]: any;
+}
+
+export const forgotPasswordRequest = async (
+  mobileNumber: string,
+  newPassword: string
+): Promise<ForgotPasswordResponse> => {
+  // Validate mobile number
+  const mobileValidation = validateMobileNumber(mobileNumber);
+  if (!mobileValidation.isValid || !mobileValidation.sanitized) {
+    throw new Error(mobileValidation.error || 'Invalid mobile number');
+  }
+
+  // Validate password
+  if (!newPassword || typeof newPassword !== 'string') {
+    throw new Error('Password is required');
+  }
+
+  const passwordTrimmed = newPassword.trim();
+  if (passwordTrimmed.length < 1) {
+    throw new Error('Password cannot be empty');
+  }
+
+  if (passwordTrimmed.length > 100) {
+    throw new Error('Password is too long');
+  }
+
+  // Check for SQL injection patterns in password
+  const sqlInjectionPatterns = [
+    /(\b(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|EXEC|EXECUTE|UNION|SCRIPT)\b)/i,
+    /(--|;|'|"|`|\*|%)/,
+    /(\bOR\b|\bAND\b).*(\d+|=|'|")/i,
+  ];
+
+  for (const pattern of sqlInjectionPatterns) {
+    if (pattern.test(passwordTrimmed)) {
+      throw new Error('Invalid password format');
+    }
+  }
+
+  const response = await makeRequest<ForgotPasswordResponse>(
+    'POST',
+    '/customer/forgot-password',
+    {
+      username: mobileValidation.sanitized,
+      password: passwordTrimmed,
+    }
+  );
+
+  const responseData = response.data;
+
+  // Check if API returned error in response data (even with 200 status)
+  if (responseData.status === 'error' || responseData.data?.status === 'error') {
+    const errorMessage = responseData.message || responseData.data?.message || 'Customer not found';
+    const error = new Error(errorMessage);
+    (error as any).response = {
+      data: {
+        status: 'error',
+        message: errorMessage,
+        data: responseData.data,
+      },
+    };
+    throw error;
+  }
+
+  return responseData;
+};
+

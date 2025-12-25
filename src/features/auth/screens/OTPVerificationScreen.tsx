@@ -13,6 +13,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import api from '@/services/api';
+import { verifyOTPRequest, resendOTPRequest, logCustomerStepRequest } from '@/services/requests';
 import { useToast } from '@/components/Toast';
 import { Text } from '@/components/primitives/Text';
 import { Button } from '@/components/primitives/Button';
@@ -23,7 +24,6 @@ import { useScreenDimensions } from '@/utils/useScreenDimensions';
 import { lightTheme } from '@/styles/tokens';
 import { Icon } from '@/components/icons';
 import { saveRegistrationStep } from '@/services/registrationStepService';
-import { logCustomerStepRequest } from '@/services/requests';
 
 type AuthStackParamList = {
   OTPVerification: { mobileNumber?: string; email?: string; purpose?: 'password-reset' | 'verification' | 'registration' };
@@ -124,34 +124,46 @@ export const OTPVerificationScreen = () => {
       setErrorMessage('');
       setIsSuccess(false);
 
-      const response = await api.post('/auth/otp-verify', {
-        mobileNumber: route.params?.mobileNumber || undefined,
-        email: route.params?.email || undefined,
-        otp: data.otp,
-        purpose: purpose, // Pass purpose for registration flow
-      });
+      const mobileNumber = route.params?.mobileNumber;
+      if (!mobileNumber) {
+        throw new Error('Mobile number is required');
+      }
+
+      let response;
+      
+      // Use verify-otp API for registration and password-reset flows
+      if (purpose === 'registration' || purpose === 'password-reset') {
+        response = await verifyOTPRequest(mobileNumber, data.otp);
+      } else {
+        // For other flows (verification), use existing endpoint
+        const apiResponse = await api.post('/auth/otp-verify', {
+          mobileNumber: mobileNumber,
+          email: route.params?.email || undefined,
+          otp: data.otp,
+          purpose: purpose,
+        });
+        response = apiResponse.data;
+      }
 
       // Show success state
       setIsSuccess(true);
-      showToast({ type: 'success', message: response.data.message || t('auth.otpVerification.success') });
+      showToast({ type: 'success', message: response.message || t('auth.otpVerification.success') });
 
       // Save step data for registration flow
       if (purpose === 'registration') {
         await saveRegistrationStep('otp-verification', {
-          mobileNumber: route.params?.mobileNumber,
+          mobileNumber: mobileNumber,
           email: route.params?.email,
-          resetToken: response.data.resetToken || response.data.verificationToken,
-          response: response.data,
+          resetToken: response.resetToken || response.verificationToken || response.token,
+          response: response,
         });
         
         // Log customer step: OTP verified for registration
-        if (route.params?.mobileNumber) {
-          try {
-            await logCustomerStepRequest(route.params.mobileNumber, 'OTP verified for registration');
-          } catch (logError) {
-            // Don't fail if logging fails
-            console.warn('Failed to log customer step:', logError);
-          }
+        try {
+          await logCustomerStepRequest(mobileNumber, 'OTP verified for registration');
+        } catch (logError) {
+          // Don't fail if logging fails
+          console.warn('Failed to log customer step:', logError);
         }
       }
 
@@ -160,18 +172,18 @@ export const OTPVerificationScreen = () => {
         // Navigate based on purpose
         if (purpose === 'password-reset') {
           navigation.navigate('ResetPassword', {
-            mobileNumber: route.params?.mobileNumber,
+            mobileNumber: mobileNumber,
             email: route.params?.email,
-            resetToken: response.data.resetToken,
+            resetToken: response.resetToken || response.token,
           });
         } else if (purpose === 'registration') {
           // Navigate to password setup screen for registration
           navigation.navigate('PasswordSetup', {
             config: {
               purpose: 'registration',
-              mobileNumber: route.params?.mobileNumber,
+              mobileNumber: mobileNumber,
               email: route.params?.email,
-              resetToken: response.data.resetToken || response.data.verificationToken,
+              resetToken: response.resetToken || response.verificationToken || response.token,
             },
           });
         } else {
@@ -211,15 +223,25 @@ export const OTPVerificationScreen = () => {
       setResendLoading(true);
       setErrorMessage('');
 
-      // Use appropriate endpoint based on purpose
-      const endpoint = purpose === 'registration' 
-        ? '/auth/register/send-otp' 
-        : '/auth/forgot-password';
+      const mobileNumber = route.params?.mobileNumber;
+      if (!mobileNumber) {
+        throw new Error('Mobile number is required');
+      }
+
+      let response;
       
-      const response = await api.post(endpoint, {
-        mobileNumber: route.params?.mobileNumber || undefined,
-        email: route.params?.email || undefined,
-      });
+      // Use resend-otp API for registration and password-reset flows
+      if (purpose === 'registration' || purpose === 'password-reset') {
+        response = await resendOTPRequest(mobileNumber);
+      } else {
+        // For other flows (verification), use existing endpoint
+        const endpoint = '/auth/verify/send-otp';
+        const apiResponse = await api.post(endpoint, {
+          mobileNumber: mobileNumber,
+          email: route.params?.email || undefined,
+        });
+        response = apiResponse.data;
+      }
 
       // Reset OTP input
       setValue('otp', '');
@@ -227,14 +249,14 @@ export const OTPVerificationScreen = () => {
       // Start resend timer
       setResendTimer(RESEND_COOLDOWN);
 
-      showToast({ type: 'success', message: response.data.message || t('auth.otpVerification.otpResent') });
+      showToast({ type: 'success', message: response.message || t('auth.otpVerification.otpResent') });
 
       // Log OTP in development (remove in production)
-      if (__DEV__ && response.data.otp) {
-        console.log(`[DEV] OTP: ${response.data.otp}`);
+      if (__DEV__ && response.otp) {
+        console.log(`[DEV] OTP: ${response.otp}`);
       }
     } catch (error: any) {
-      const errorMsg = error.response?.data?.message || error.message || t('auth.otpVerification.resendFailed');
+      const errorMsg = error.message || error.response?.data?.message || t('auth.otpVerification.resendFailed');
       setErrorMessage(errorMsg);
 
       // Check if error indicates cooldown period

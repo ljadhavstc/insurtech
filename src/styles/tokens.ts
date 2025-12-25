@@ -30,6 +30,7 @@ export const baseColors = {
   
   // Semantic colors
   success: '#28a745',
+  successActive: '#34C759', // Active success color for toggles and interactive elements
   successLight: '#E6F9F4', // Light success background
   successAccent: '#14B861', // Success accent/border color
   error: '#dc3545',

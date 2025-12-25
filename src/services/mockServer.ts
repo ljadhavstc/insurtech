@@ -8,6 +8,7 @@
  */
 
 import api from './api';
+import { ENABLE_MOCK_SERVER, FORCE_MOCK_MODE, USE_MOCK_FIRST, USE_MOCK_FALLBACK } from '@/config/env';
 
 // OTP and cooldown tracking
 interface OTPData {
@@ -535,19 +536,9 @@ export const mockStartVerification = async () => {
   };
 };
 
-// Enable mock server in development OR always enable with fallback
-// In production, it will try real API first, then fallback to mock if unreachable
-const ENABLE_MOCK = true; // Always enable mock server
-
-// FORCE_MOCK_MODE: Set to true to always use mock server first (even in production builds)
-// This is useful for testing APKs without a backend server
-// When true: APK will use mock server immediately, skipping real API attempts
-// When false: APK will try real API first, then fallback to mock if unreachable
-const FORCE_MOCK_MODE = true; // ✅ Currently enabled - GitHub Actions builds will use mock server first
-
-// USE_MOCK_FIRST: Determines if mock should be used before trying real API
-// In dev mode (__DEV__ = true) OR when FORCE_MOCK_MODE = true, mock is used first
-const USE_MOCK_FIRST = __DEV__ || FORCE_MOCK_MODE;
+// Mock server configuration is now controlled via .env file
+// See src/config/env.ts for configuration values
+// Default: ENABLE_MOCK_SERVER=false (use live APIs only)
 
 // Store original methods
 const originalPost = api.post.bind(api);
@@ -664,8 +655,19 @@ const getMockResponse = async (url: string, data?: any): Promise<any> => {
 // Override axios post method
 api.post = async function(url: string, data?: any, config?: any): Promise<any> {
   const isAuthEndpoint = url.includes('/auth/');
+  const isCustomerEndpoint = url.includes('/customer/');
   
-  // In development, use mock first
+  // Skip mock for customer endpoints (live APIs) - always use real API
+  if (isCustomerEndpoint) {
+    return originalPost(url, data, config);
+  }
+  
+  // If mock server is disabled, use real API only
+  if (!ENABLE_MOCK_SERVER) {
+    return originalPost(url, data, config);
+  }
+  
+  // Use mock first if FORCE_MOCK_MODE is enabled
   if (USE_MOCK_FIRST && isAuthEndpoint) {
     try {
       const mockResponse = await getMockResponse(url, data);
@@ -686,8 +688,8 @@ api.post = async function(url: string, data?: any, config?: any): Promise<any> {
   
   // Try real API first (or if not an auth endpoint)
   return originalPost(url, data, config).catch(async (error: any) => {
-    // If API fails and it's an auth endpoint, fallback to mock
-    if (isAuthEndpoint && isNetworkError(error)) {
+    // If API fails and it's an auth endpoint, fallback to mock (if enabled)
+    if (isAuthEndpoint && USE_MOCK_FALLBACK && isNetworkError(error)) {
       console.log('[MOCK SERVER] API unreachable, using mock fallback for:', url, error.code || error.message);
       
       try {
@@ -715,34 +717,47 @@ api.post = async function(url: string, data?: any, config?: any): Promise<any> {
 // Override axios get method for verification status
 api.get = async function(url: string, config?: any): Promise<any> {
   const isAuthEndpoint = url.includes('/auth/');
+  const isCustomerEndpoint = url.includes('/customer/');
+  
+  // Skip mock for customer endpoints (live APIs) - always use real API
+  if (isCustomerEndpoint) {
+    return originalGet(url, config);
+  }
+  
+  // If mock server is disabled, use real API only
+  if (!ENABLE_MOCK_SERVER) {
+    return originalGet(url, config);
+  }
   
   // Handle verification status endpoint
   if (url.includes('/auth/verification/status')) {
-    try {
-      const mockResponse = await mockGetVerificationStatus();
-      return Promise.resolve({
-        data: mockResponse,
-        status: 200,
-        statusText: 'OK',
-        headers: {},
-        config: config || {},
-      });
-    } catch (error: any) {
-      return Promise.reject({
-        response: {
-          data: { message: error.message },
-          status: 400,
-          statusText: 'Bad Request',
-        },
-        message: error.message,
-      });
+    if (USE_MOCK_FIRST) {
+      try {
+        const mockResponse = await mockGetVerificationStatus();
+        return Promise.resolve({
+          data: mockResponse,
+          status: 200,
+          statusText: 'OK',
+          headers: {},
+          config: config || {},
+        });
+      } catch (error: any) {
+        return Promise.reject({
+          response: {
+            data: { message: error.message },
+            status: 400,
+            statusText: 'Bad Request',
+          },
+          message: error.message,
+        });
+      }
     }
   }
   
   // For other GET requests, try real API first
   return originalGet(url, config).catch(async (error: any) => {
-    // If API fails and it's an auth endpoint, fallback to mock
-    if (isAuthEndpoint && isNetworkError(error)) {
+    // If API fails and it's an auth endpoint, fallback to mock (if enabled)
+    if (isAuthEndpoint && USE_MOCK_FALLBACK && isNetworkError(error)) {
       console.log('[MOCK SERVER] API unreachable, using mock fallback for GET:', url, error.code || error.message);
       // Could add more GET endpoint handling here if needed
     }
@@ -752,14 +767,15 @@ api.get = async function(url: string, config?: any): Promise<any> {
   });
 };
 
-if (USE_MOCK_FIRST) {
+// Log mock server status
+if (ENABLE_MOCK_SERVER) {
   if (FORCE_MOCK_MODE) {
-    console.log('[MOCK SERVER] ✅ Initialized - FORCE_MOCK_MODE enabled - Auth endpoints will use mock server first (production build)');
+    console.log('[MOCK SERVER] ✅ Initialized - FORCE_MOCK_MODE enabled - Auth endpoints will use mock server first');
   } else {
-    console.log('[MOCK SERVER] ✅ Initialized - Auth endpoints are being mocked (dev mode)');
+    console.log('[MOCK SERVER] ✅ Initialized - Fallback mode - Will use mock if API is unreachable');
   }
 } else {
-  console.log('[MOCK SERVER] Fallback mode - Will use mock if API is unreachable');
+  console.log('[MOCK SERVER] ⚠️  Disabled - Using live APIs only (configure via .env file)');
 }
 
 export default {

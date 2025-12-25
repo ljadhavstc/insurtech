@@ -21,17 +21,19 @@ import { vs } from '@/utils/scale';
 import { useScreenDimensions } from '@/utils/useScreenDimensions';
 import { lightTheme } from '@/styles/tokens';
 import { Icon } from '@/components/icons';
+import { generateOTPRequest } from '@/services/requests';
 
 type AuthStackParamList = {
   Login: undefined;
   ForgotPassword: undefined;
-  OTPVerification: { email: string };
+  OTPVerification: { mobileNumber: string; purpose: 'password-reset' };
 };
 
 type ForgotPasswordScreenNavigationProp = StackNavigationProp<AuthStackParamList, 'ForgotPassword'>;
 
 type ForgotPasswordFormData = {
-  email: string;
+  mobileNumber: string;
+  purpose: 'password-reset';
 };
 
 export const ForgotPasswordScreen = () => {
@@ -48,32 +50,29 @@ export const ForgotPasswordScreen = () => {
     watch,
   } = useForm<ForgotPasswordFormData>({
     defaultValues: {
-      email: '',
+      mobileNumber: '',
     },
     mode: 'onBlur',
     reValidateMode: 'onChange',
   });
 
-  const email = watch('email');
+  const mobileNumber = watch('mobileNumber');
   
   // Check if form is valid
-  const hasValue = email && email.trim() !== '';
+  const hasValue = mobileNumber && mobileNumber.trim() !== '' && typeof mobileNumber === 'string';
   const hasErrors = Object.keys(errors).length > 0;
   const isFormValid = hasValue && !hasErrors;
-
   const onSubmit = async (data: ForgotPasswordFormData) => {
     try {
       setLoading(true);
-      const response = await api.post('/auth/forgot-password', {
-        email: data.email,
-      });
+      const response = await generateOTPRequest(data.mobileNumber);
 
-      showToast({ type: 'success', message: response.data.message || 'Code sent successfully' });
+      showToast({ type: 'success', message: response.message || 'Code sent successfully' });
       
       // Navigate to OTP verification screen
       navigation.navigate('OTPVerification', { 
-        mobileNumber: data.email, // Using email field for mobile number
-        purpose: 'password-reset' 
+        mobileNumber: data.mobileNumber.toString(),
+        purpose: data.purpose,
       });
     } catch (error: any) {
       showToast({
@@ -146,7 +145,7 @@ export const ForgotPasswordScreen = () => {
             <View className="gap-md pt-md">
               <FormField
                 control={control}
-                name="email"
+                name="mobileNumber"
                 variant="mobile"
                 label={t('auth.forgotPassword.mobileNumber')}
                 placeholder={t('auth.forgotPassword.mobileNumberPlaceholder')}
@@ -155,7 +154,7 @@ export const ForgotPasswordScreen = () => {
                   required: 'Mobile number is required',
                   pattern: {
                     value: /^[0-9]{8,15}$/,
-                    message: 'mobile number is invalid',
+                    message: 'Mobile number must be 8-15 digits',
                   },
                 }}
               />

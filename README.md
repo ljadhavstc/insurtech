@@ -28,6 +28,22 @@ npm install
 yarn install
 ```
 
+### Environment Configuration
+
+1. **Copy the example environment file:**
+   ```bash
+   cp .env.example .env
+   ```
+
+2. **Edit `.env` file** to configure mock server settings (see [ENV_CONFIG.md](./ENV_CONFIG.md) for details)
+
+3. **For iOS**, install pods:
+   ```bash
+   cd ios && pod install && cd ..
+   ```
+
+   **Note:** After changing `.env` values, you must rebuild the app (not just reload).
+
 ### Run the App
 
 ```bash

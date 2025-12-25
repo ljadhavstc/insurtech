@@ -12,8 +12,8 @@ import { useForm, Controller } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import api from '@/services/api';
 import { useToast } from '@/components/Toast';
+import { forgotPasswordRequest } from '@/services/requests';
 import { Text } from '@/components/primitives/Text';
 import { Button } from '@/components/primitives/Button';
 import { Input } from '@/components/primitives/Input';
@@ -28,7 +28,7 @@ import { Icon } from '@/components/icons';
 
 type AuthStackParamList = {
   ResetPassword: { mobileNumber?: string; email?: string; resetToken: string };
-  Success: { message?: string };
+  Success: { message?: string; isError?: boolean; errorStatus?: string };
   Login: undefined;
 };
 
@@ -114,24 +114,32 @@ export const ResetPasswordScreen = () => {
   }, [newPassword, confirmPassword, canProceedWithPassword, mobileNumber]);
 
   const onSubmit = async (data: ResetPasswordFormData) => {
-    try {
-      setLoading(true);
-      const response = await api.post('/auth/reset-password', {
-        email: email || mobileNumber,
-        resetToken,
-        newPassword: data.newPassword,
-      });
-
-      showToast({ type: 'success', message: response.data.message || 'Password reset successfully' });
-      
-      // Navigate to success screen
-      navigation.navigate('Success', {
-        message: response.data.message || 'Password reset successfully',
-      });
-    } catch (error: any) {
+    if (!mobileNumber) {
       showToast({
         type: 'error',
-        message: error.response?.data?.message || error.message || 'Failed to reset password',
+        message: 'Mobile number is required',
+      });
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const response = await forgotPasswordRequest(mobileNumber, data.newPassword);
+      
+      // Navigate to success screen with response
+      navigation.navigate('Success', {
+        message: response.message || 'Password reset successfully',
+        isError: false,
+      });
+    } catch (error: any) {
+      // Navigate to success screen with error data
+      const errorData = error.response?.data;
+      const errorMsg = errorData?.message || error.message || 'Failed to reset password';
+      
+      navigation.navigate('Success', {
+        message: errorMsg,
+        isError: true,
+        errorStatus: errorData?.status,
       });
     } finally {
       setLoading(false);

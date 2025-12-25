@@ -7,7 +7,7 @@
 
 import React, { useRef, useEffect } from 'react';
 import { TouchableOpacity, Animated } from 'react-native';
-import { brandColors } from '@/styles/tokens';
+import { baseColors } from '@/styles/tokens';
 import { ms } from '@/utils/scale';
 
 export interface ToggleSwitchProps {
@@ -50,7 +50,7 @@ export interface ToggleSwitchProps {
 export const ToggleSwitch: React.FC<ToggleSwitchProps> = ({
   value,
   onValueChange,
-  enabledColor = brandColors.red, // Primary color: #FF375E
+  enabledColor = baseColors.successActive, // Success color: #34C759
   disabledColor = '#E5E7EB', // Light gray for disabled state
   testID,
   disabled = false,

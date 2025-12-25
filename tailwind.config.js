@@ -29,6 +29,7 @@ module.exports = {
         'secondary-dark': baseColors.secondaryDark,
         'secondary-light': baseColors.secondaryLight,
         success: baseColors.success,
+        'success-active': baseColors.successActive,
         'success-light': baseColors.successLight,
         'success-accent': baseColors.successAccent,
         error: baseColors.error,

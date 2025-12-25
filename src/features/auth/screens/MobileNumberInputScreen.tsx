@@ -16,6 +16,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import api from '@/services/api';
+import { generateOTPRequest } from '@/services/requests';
 import { useToast } from '@/components/Toast';
 import { Text } from '@/components/primitives/Text';
 import { Button } from '@/components/primitives/Button';
@@ -215,18 +216,30 @@ export const MobileNumberInputScreen: React.FC<MobileNumberInputScreenProps> = (
     try {
       setLoading(true);
       
-      const endpoint = finalConfig.apiEndpoint || '/auth/forgot-password';
-      const response = await api.post(endpoint, {
-        mobileNumber: data.mobileNumber,
-      });
-
-      showToast({ type: 'success', message: response.data.message || 'Code sent successfully' });
+      let response;
+      
+      // Use generate-otp API for registration and password-reset flows
+      if (config.purpose === 'registration' || config.purpose === 'password-reset') {
+        response = await generateOTPRequest(data.mobileNumber);
+        showToast({ 
+          type: 'success', 
+          message: response.message || 'OTP sent successfully to your mobile number' 
+        });
+      } else {
+        // For other flows (verification), use existing endpoint
+        const endpoint = finalConfig.apiEndpoint || '/auth/verify/send-otp';
+        const apiResponse = await api.post(endpoint, {
+          mobileNumber: data.mobileNumber,
+        });
+        response = apiResponse.data;
+        showToast({ type: 'success', message: response.message || 'Code sent successfully' });
+      }
       
       // Save step data for registration flow
       if (config.purpose === 'registration') {
         await saveRegistrationStep('mobile-input', {
           mobileNumber: data.mobileNumber,
-          response: response.data,
+          response: response,
         });
         
         // Log customer step: Mobile number entered for registration
