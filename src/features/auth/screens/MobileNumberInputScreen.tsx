@@ -363,6 +363,7 @@ export const MobileNumberInputScreen: React.FC<MobileNumberInputScreenProps> = (
                 placeholder={t('auth.forgotPassword.mobileNumberPlaceholder')}
                 testID="mobile-number-input"
                 rules={validationRules}
+                keyboardType="phone-pad"
               />
             </View>
 

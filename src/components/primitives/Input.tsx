@@ -324,16 +324,20 @@ export const Input: React.FC<InputProps> = ({
       <View
         className={`
           flex-row items-center
-          border rounded-sm
+          border
           bg-white
-          px-md py-[10.5px]
           gap-xs
-          min-h-[48px]
           ${hasError ? 'border-error-light' : 'border-theme-border'}
         `}
         style={[
           {
             borderColor,
+            // Mobile variant specific styles: height 56px, border-radius 2px, padding 10.5px vertical and 16px horizontal
+            height: (variant === 'mobile' || variant === 'mobile-with-country-code') ? ms(56) : undefined,
+            minHeight: (variant === 'mobile' || variant === 'mobile-with-country-code') ? undefined : ms(48),
+            borderRadius: (variant === 'mobile' || variant === 'mobile-with-country-code') ? ms(2) : ms(4), // rounded-sm is typically 4px, but mobile needs 2px
+            paddingHorizontal: (variant === 'mobile' || variant === 'mobile-with-country-code') ? ms(16) : ms(16), // px-md = 16px
+            paddingVertical: ms(10.5), // 10.5px vertical for all variants
             ...styles?.inputContainer,
           },
         ]}

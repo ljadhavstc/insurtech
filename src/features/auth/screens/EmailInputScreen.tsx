@@ -29,7 +29,7 @@ import {
   getBiometricName 
 } from '@/services/biometricService';
 import { saveRegistrationStep } from '@/services/registrationStepService';
-import { logCustomerStepRequest } from '@/services/requests';
+import { logCustomerStepRequest, registerRequest } from '@/services/requests';
 
 type EmailInputFormData = {
   email: string;
@@ -132,27 +132,36 @@ export const EmailInputScreen: React.FC = () => {
     try {
       setLoading(true);
 
-      // Complete registration with email
-      const response = await api.post('/auth/register/complete', {
-        mobileNumber,
-        email: data.email,
-        password,
-        resetToken,
-      });
+      if (!mobileNumber || !password) {
+        throw new Error('Mobile number and password are required');
+      }
 
-      showToast({ type: 'success', message: response.data.message || 'Registration completed successfully' });
+      // Call register API with all required data
+      // CPR is hardcoded for now, will come from JUMIO later
+      const response = await registerRequest(
+        mobileNumber, // username
+        password,     // password
+        mobileNumber, // mobile
+        data.email,   // email
+        '22347889'    // cpr (hardcoded for now)
+      );
+
+      // Show exact success message from API
+      const successMessage = response.message || 'Registration completed successfully';
+      showToast({ type: 'success', message: successMessage });
       
       // Save step data for registration flow
       await saveRegistrationStep('email-input', {
         mobileNumber,
         email: data.email,
-        response: response.data,
+        password,
+        response: response,
       });
       
-      // Log customer step: Email entered for registration
+      // Log customer step: Registration completed
       if (mobileNumber) {
         try {
-          await logCustomerStepRequest(mobileNumber, 'Email entered for registration');
+          await logCustomerStepRequest(mobileNumber, 'Registration completed');
         } catch (logError) {
           // Don't fail if logging fails
           console.warn('Failed to log customer step:', logError);
@@ -160,19 +169,35 @@ export const EmailInputScreen: React.FC = () => {
       }
       
       // Auto-login if user data is returned
-      if (response.data.user && response.data.token) {
-        login(response.data.user, response.data.token, response.data.refreshToken);
-        
-        // Note: Biometric will be enabled after CPR verification, not here
-        // The toggle in this screen is just for preference
+      if (
+        response.user &&
+        typeof response.user.id === "string" &&
+        response.token &&
+        typeof response.token === "string" &&
+        response.refreshToken &&
+        typeof response.refreshToken === "string"
+      ) {
+        login(
+          {
+            ...response.user,
+            id: response.user.id, // id is guaranteed a string here
+          },
+          response.token,
+          response.refreshToken
+        );
       }
       
-      // Navigate to start verification screen instead of success
-      navigation.navigate('StartVerification');
+      // Navigate to Success screen with exact message from API
+      // Skip JUMIO verification screens for now
+      navigation.navigate('Success', {
+        message: successMessage,
+      });
     } catch (error: any) {
+      // Show exact error message from API
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to complete registration';
       showToast({
         type: 'error',
-        message: error.response?.data?.message || error.message || 'Failed to complete registration',
+        message: errorMessage,
       });
     } finally {
       setLoading(false);

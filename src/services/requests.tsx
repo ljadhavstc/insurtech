@@ -417,3 +417,107 @@ export const forgotPasswordRequest = async (
   return responseData;
 };
 
+/**
+ * Register API
+ * POST /customer/account-register
+ * 
+ * @param username - Mobile number (username)
+ * @param password - User password
+ * @param mobile - Mobile number
+ * @param email - Email address
+ * @param cpr - CPR number (hardcoded for now, will come from JUMIO later)
+ */
+export interface RegisterRequest {
+  username: string;
+  password: string;
+  mobile: string;
+  email: string;
+  cpr: string;
+}
+
+export interface RegisterResponse {
+  success?: boolean;
+  message?: string;
+  token?: string;
+  refreshToken?: string;
+  user?: {
+    id?: string;
+    username?: string;
+    mobile_number?: string;
+    email?: string;
+    [key: string]: any;
+  };
+  [key: string]: any;
+}
+
+export const registerRequest = async (
+  username: string,
+  password: string,
+  mobile: string,
+  email: string,
+  cpr: string = '22347889' // Hardcoded for now, will come from JUMIO later
+): Promise<RegisterResponse> => {
+  // Validate mobile number (username)
+  const mobileValidation = validateMobileNumber(username);
+  if (!mobileValidation.isValid || !mobileValidation.sanitized) {
+    throw new Error(mobileValidation.error || 'Invalid mobile number');
+  }
+
+  // Validate mobile number (mobile field)
+  const mobileFieldValidation = validateMobileNumber(mobile);
+  if (!mobileFieldValidation.isValid || !mobileFieldValidation.sanitized) {
+    throw new Error(mobileFieldValidation.error || 'Invalid mobile number');
+  }
+
+  // Validate email
+  const emailRegex = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
+  if (!email || typeof email !== 'string' || !emailRegex.test(email.trim())) {
+    throw new Error('Invalid email address');
+  }
+
+  // Validate password
+  if (!password || typeof password !== 'string' || password.trim().length === 0) {
+    throw new Error('Password is required');
+  }
+
+  const passwordTrimmed = password.trim();
+  if (passwordTrimmed.length < 1) {
+    throw new Error('Password cannot be empty');
+  }
+
+  if (passwordTrimmed.length > 100) {
+    throw new Error('Password is too long');
+  }
+
+  // Validate CPR (basic validation - should be numeric, 8-15 digits)
+  if (!cpr || typeof cpr !== 'string') {
+    throw new Error('CPR is required');
+  }
+
+  const cprTrimmed = cpr.trim();
+  const cprRegex = /^[0-9]{8,15}$/;
+  if (!cprRegex.test(cprTrimmed)) {
+    throw new Error('CPR must be 8-15 digits');
+  }
+
+  // Sanitize email
+  const emailValidation = sanitizeString(email, 255);
+  if (!emailValidation.isValid || !emailValidation.sanitized) {
+    throw new Error('Invalid email format');
+  }
+
+  const response = await makeRequest<RegisterResponse>(
+    'POST',
+    '/customer/account-register',
+    {
+      username: mobileValidation.sanitized,
+      password: passwordTrimmed,
+      mobile: mobileFieldValidation.sanitized,
+      email: emailValidation.sanitized,
+      cpr: cprTrimmed,
+    }
+  );
+
+  return response.data;
+};
+
