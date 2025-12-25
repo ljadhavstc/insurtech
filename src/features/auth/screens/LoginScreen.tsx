@@ -11,6 +11,7 @@ import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
+import { loginRequest } from '@/services/requests';
 import api from '@/services/api';
 import { authStore } from '@/stores/authStore';
 import { useToast } from '@/components/Toast';
@@ -108,29 +109,51 @@ export const LoginScreen = () => {
   const onSubmit = async (data: LoginFormData) => {
     try {
       setLoading(true);
-      const response = await api.post('/auth/login', {
-        phoneNumber: data.phoneNumber,
-        password: data.password,
-      });
+      
+      // Call login API with username (mobile number) and password
+      const response = await loginRequest(data.phoneNumber, data.password);
 
-      const { user, token, refreshToken } = response.data;
-      login(user, token, refreshToken);
+      // Extract user data and tokens from response
+      // Handle different response formats
+      const token = response.token || response.data?.token || response.access_token;
+      const refreshToken = response.refreshToken || response.data?.refreshToken || response.refresh_token;
+      const user = response.user || response.data?.user;
+      
+      if (!token) {
+        throw new Error(response.message || response.error || 'Login failed: No token received');
+      }
+
+      // Map response to expected format for auth store
+      const userData = user ? {
+        id: user.id || user.username || user.mobile_number || data.phoneNumber,
+        email: user.email || '',
+        name: user.name || user.first_name || undefined,
+        username: user.username || data.phoneNumber,
+        mobile_number: user.mobile_number || data.phoneNumber,
+      } : {
+        id: data.phoneNumber,
+        email: '',
+        username: data.phoneNumber,
+        mobile_number: data.phoneNumber,
+      };
+
+      login(userData, token, refreshToken || '');
       
       // If biometric is available and enabled, store the JWT token for future biometric login
       if (biometricAvailable && biometricEnabled) {
         try {
-          await enableBiometric(token, refreshToken);
+          await enableBiometric(token, refreshToken || '');
         } catch (error) {
           // Don't fail login if biometric storage fails
           console.warn('Failed to store biometric token:', error);
         }
       }
       
-      showToast({ type: 'success', message: 'Login successful!' });
+      showToast({ type: 'success', message: response.message || 'Login successful!' });
     } catch (error: any) {
       showToast({
         type: 'error',
-        message: error.response?.data?.message || error.message || 'Login failed',
+        message: error.message || 'Login failed. Please check your credentials.',
       });
     } finally {
       setLoading(false);
@@ -167,7 +190,7 @@ export const LoginScreen = () => {
 
         if (verifyResponse.data.user) {
           // Token is valid, login with stored token
-          login(verifyResponse.data.user, result.token, result.refreshToken);
+          login(verifyResponse.data.user, result.token, result.refreshToken || '');
           showToast({ type: 'success', message: t('auth.biometric.loginSuccess', 'Login successful!') });
         } else {
           throw new Error('Invalid token');

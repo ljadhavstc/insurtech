@@ -17,6 +17,7 @@ import EyeIcon from './Eye';
 import EyeOffIcon from './EyeOff';
 import InfoIcon from './Info';
 import CheckCircleIcon from './CheckCircle';
+import FaceIDIcon from './FaceID';
 
 // Register all icons
 registerIcon('chevron-left', ChevronLeftIcon);
@@ -25,6 +26,7 @@ registerIcon('eye', EyeIcon);
 registerIcon('eye-off', EyeOffIcon);
 registerIcon('info', InfoIcon);
 registerIcon('check-circle', CheckCircleIcon);
+registerIcon('face-id', FaceIDIcon);
 
 // Export individual icons for direct use (better tree-shaking)
 export { ChevronLeftIcon } from './ChevronLeft';
@@ -33,6 +35,7 @@ export { EyeIcon } from './Eye';
 export { EyeOffIcon } from './EyeOff';
 export { InfoIcon } from './Info';
 export { CheckCircle } from './CheckCircle';
+export { FaceID } from './FaceID';
 
 // Export Icon component
 export { Icon, registerIcon } from './Icon';
@@ -45,5 +48,6 @@ export type IconName =
   | 'eye'
   | 'eye-off'
   | 'info'
-  | 'check-circle';
+  | 'check-circle'
+  | 'face-id';
 

@@ -10,6 +10,11 @@ import { Providers } from './src/app/providers';
 import { RootNavigator } from '@/navigation/RootNavigator';
 import './global.css'; // NativeWind global styles
 
+// Import Reactotron in development mode only
+if (__DEV__) {
+  require('./src/config/ReactotronConfig');
+}
+
 // Import mock server - always available, will use mock in dev or fallback in production
 require('./src/services/mockServer');
 

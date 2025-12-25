@@ -29,6 +29,7 @@ import {
   getBiometricName 
 } from '@/services/biometricService';
 import { saveRegistrationStep } from '@/services/registrationStepService';
+import { logCustomerStepRequest } from '@/services/requests';
 
 type EmailInputFormData = {
   email: string;
@@ -147,6 +148,16 @@ export const EmailInputScreen: React.FC = () => {
         email: data.email,
         response: response.data,
       });
+      
+      // Log customer step: Email entered for registration
+      if (mobileNumber) {
+        try {
+          await logCustomerStepRequest(mobileNumber, 'Email entered for registration');
+        } catch (logError) {
+          // Don't fail if logging fails
+          console.warn('Failed to log customer step:', logError);
+        }
+      }
       
       // Auto-login if user data is returned
       if (response.data.user && response.data.token) {

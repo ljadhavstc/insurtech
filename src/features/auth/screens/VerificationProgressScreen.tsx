@@ -31,6 +31,7 @@ import {
 } from '@/services/biometricService';
 import { authStore } from '@/stores/authStore';
 import { saveRegistrationStep, clearRegistrationSteps } from '@/services/registrationStepService';
+import { logCustomerStepRequest } from '@/services/requests';
 
 type AuthStackParamList = {
   VerificationProgress: undefined;
@@ -68,7 +69,7 @@ export const VerificationProgressScreen: React.FC = () => {
   const { showToast } = useToast();
   const { isLandscape } = useScreenDimensions();
   const { token, refreshToken } = authStore();
-  const setBiometricEnabled = authStore((state) => state.setBiometricEnabled);
+  const setBiometricEnabledInStore = authStore((state) => state.setBiometricEnabled);
 
   const [steps, setSteps] = useState<VerificationStep[]>(
     VERIFICATION_STEPS.map((step, index) => ({ 
@@ -77,14 +78,15 @@ export const VerificationProgressScreen: React.FC = () => {
     }))
   );
   const [isComplete, setIsComplete] = useState(false);
-  const [showBiometricSheet, setShowBiometricSheet] = useState(false);
+  const [showBiometricSheet, setShowBiometricSheet] = useState(true);
   const [biometricAvailable, setBiometricAvailable] = useState(false);
   const [biometricType, setBiometricType] = useState<string>('');
   const [checkingBiometric, setCheckingBiometric] = useState(false);
+  const [biometricEnabled, setBiometricEnabled] = useState(false);
 
   // Simulate step completion (mock - will be replaced with Jumio API check)
   useEffect(() => {
-    const timers: NodeJS.Timeout[] = [];
+    const timers: ReturnType<typeof setTimeout>[] = [];
 
     // Step 1 is already completed
     // Complete step 2 after 3 seconds
@@ -136,36 +138,67 @@ export const VerificationProgressScreen: React.FC = () => {
     }
   };
 
-  const handleEnableBiometric = async () => {
-    if (!token) {
-      showToast({
-        type: 'error',
-        message: t('auth.biometric.noToken', 'Unable to enable biometric. Please login again.'),
-      });
-      return;
-    }
-
-    try {
-      const result = await enableBiometric(token, refreshToken || undefined);
-      if (result.success) {
-        setBiometricEnabled(true);
-        showToast({
-          type: 'success',
-          message: t('auth.biometric.enabled', { type: biometricType }),
-        });
-      } else {
+  const handleBiometricToggle = async (enabled: boolean) => {
+    setBiometricEnabled(enabled);
+    
+    if (enabled) {
+      // Enable biometric when toggle is turned on
+      if (!token) {
         showToast({
           type: 'error',
-          message: result.error || t('auth.biometric.enableFailed', 'Failed to enable biometric'),
+          message: t('auth.biometric.noToken', 'Unable to enable biometric. Please login again.'),
         });
+        setBiometricEnabled(false);
+        return;
       }
-    } catch (error: any) {
-      showToast({
-        type: 'error',
-        message: error.message || t('auth.biometric.enableFailed', 'Failed to enable biometric'),
+
+    //   try {
+    //     const result = await enableBiometric(token, refreshToken || undefined);
+    //     if (result.success) {
+    //       setBiometricEnabled(true);
+    //       setBiometricEnabledInStore(true);
+    //       showToast({
+    //         type: 'success',
+    //         message: t('auth.biometric.enabled', { type: biometricType }),
+    //       });
+    //     } else {
+    //       showToast({
+    //         type: 'error',
+    //         message: result.error || t('auth.biometric.enableFailed', 'Failed to enable biometric'),
+    //       });
+    //       setBiometricEnabled(false);
+    //     }
+    //   } catch (error: any) {
+    //     showToast({
+    //       type: 'error',
+    //       message: error.message || t('auth.biometric.enableFailed', 'Failed to enable biometric'),
+    //     });
+    //     setBiometricEnabled(false);
+    //   }
+    // } else {
+    //   // Disable biometric when toggle is turned off
+    //   setBiometricEnabled(false);
+    }
+  };
+
+  const handleContinue = () => {
+   
+    setShowBiometricSheet(false);
+    // Save registration as completed
+    saveRegistrationStep('completed', { timestamp: Date.now() });
+    
+    // Log customer step: Registration completed
+    const user = authStore.getState().user;
+    const mobileNumber = user?.mobile_number || user?.username || user?.id;
+    if (mobileNumber) {
+      logCustomerStepRequest(mobileNumber, 'Registration completed').catch((error) => {
+        // Don't fail if logging fails
+        console.warn('Failed to log customer step:', error);
       });
     }
-    setShowBiometricSheet(false);
+    
+    // Clear registration steps after completion
+    clearRegistrationSteps();
   };
 
   const handleSkipBiometric = () => {
@@ -236,7 +269,7 @@ export const VerificationProgressScreen: React.FC = () => {
     // Clear registration steps after completion
     clearRegistrationSteps();
     // Navigate to home/main app
-    navigation.navigate('Home');
+    navigation.navigate('App');
   };
 
   return (
@@ -414,14 +447,21 @@ export const VerificationProgressScreen: React.FC = () => {
 
       {/* Biometric Enable Action Sheet */}
       <BottomActionSheet
-        visible={showBiometricSheet && biometricAvailable}
-        onClose={() => setShowBiometricSheet(false)}
-        title={t('auth.biometric.enableTitle', { type: biometricType })}
-        description={t('auth.biometric.enableDescription', { type: biometricType })}
-        primaryActionText={t('auth.biometric.enable', 'Enable')}
-        secondaryActionText={t('common.cancel', 'Cancel')}
-        onPrimaryAction={handleEnableBiometric}
-        onSecondaryAction={handleSkipBiometric}
+        visible={showBiometricSheet}
+        onClose={() => {
+          setShowBiometricSheet(false);
+          // Save registration as completed when closing
+          saveRegistrationStep('completed', { timestamp: Date.now() });
+          clearRegistrationSteps();
+        }}
+        title={t('auth.biometric.loginWithTitle', `login with ${biometricType.toLowerCase()}`, { type: biometricType })}
+        primaryActionText={t('common.continue', 'continue')}
+        onPrimaryAction={handleContinue}
+        biometricMode={true}
+        biometricEnabled={biometricEnabled}
+        onBiometricToggle={handleBiometricToggle}
+        biometricLabel={t('auth.biometric.enableLabel', 'enable biometric login')}
+        showCloseButton={false}
       />
     </View>
   );

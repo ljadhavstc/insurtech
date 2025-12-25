@@ -11,8 +11,11 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export interface User {
   id: string;
-  email: string;
+  email?: string;
   name?: string;
+  username?: string;
+  mobile_number?: string;
+  [key: string]: any; // Allow additional fields from API
 }
 
 interface AuthState {
@@ -64,6 +67,19 @@ export const authStore = create<AuthState>()(
       },
 
       logout: () => {
+        const state = authStore.getState();
+        const mobileNumber = state.user?.id || state.user?.email || '';
+        
+        // Log customer step: User log out (fire and forget - don't block logout)
+        if (mobileNumber) {
+          import('@/services/requests').then(({ logCustomerStepRequest }) => {
+            logCustomerStepRequest(mobileNumber, 'User log out').catch((error) => {
+              // Silently fail - don't block logout
+              console.warn('Failed to log customer step on logout:', error);
+            });
+          });
+        }
+        
         set({
           user: null,
           token: null,

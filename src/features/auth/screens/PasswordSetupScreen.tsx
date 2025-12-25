@@ -131,11 +131,10 @@ export const PasswordSetupScreen: React.FC = () => {
   const login = authStore((state) => state.login);
   const { isLandscape } = useScreenDimensions();
   
-  const config = route.params?.config || {
-    purpose: 'password-reset' as PasswordSetupPurpose,
-    mobileNumber: route.params?.mobileNumber,
-    email: route.params?.email,
-    resetToken: route.params?.resetToken,
+  const routeConfig = route.params?.config || {};
+  const config: PasswordSetupScreenConfig = {
+    ...routeConfig,
+    purpose: (routeConfig.purpose || 'password-reset') as PasswordSetupPurpose,
   };
 
   const {
@@ -289,6 +288,18 @@ export const PasswordSetupScreen: React.FC = () => {
           resetToken: config.resetToken,
           response: response.data,
         });
+        
+        // Log customer step: Password set for registration
+        const mobileNumber = config.mobileNumber;
+        if (mobileNumber) {
+          try {
+            const { logCustomerStepRequest } = await import('@/services/requests');
+            await logCustomerStepRequest(mobileNumber, 'Password set for registration');
+          } catch (logError) {
+            // Don't fail if logging fails
+            console.warn('Failed to log customer step:', logError);
+          }
+        }
       }
       
       // If custom onSuccess callback provided, use it
@@ -430,7 +441,7 @@ export const PasswordSetupScreen: React.FC = () => {
               {confirmPassword && confirmPassword.length > 0 && (
                 <View className="mt-xs">
                   <View className="flex-row items-center gap-xs">
-                    {passwordsMatch ? (
+                    {passwordsMatch && (
                       <>
                         <View className="w-4 h-4 items-center justify-center">
                           <Text className="text-success text-xs">✓</Text>
@@ -439,16 +450,7 @@ export const PasswordSetupScreen: React.FC = () => {
                           great! your passwords match.
                         </Text>
                       </>
-                    ) : (
-                      <>
-                        <View className="w-4 h-4 items-center justify-center">
-                          <Text className="text-error-dark text-xs">✕</Text>
-                        </View>
-                        <Text variant="caption" className="text-error-dark lowercase">
-                          passwords do not match
-                        </Text>
-                      </>
-                    )}
+                    ) }
                   </View>
                 </View>
               )}

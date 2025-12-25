@@ -126,6 +126,8 @@
       "enabled": "{{type}} login enabled",
       "disabled": "Biometric login disabled",
       "loginWith": "Login with {{type}}",
+      "loginWithTitle": "login with {{type}}",
+      "enableLabel": "enable biometric login",
       "or": "or",
       "notAvailable": "Biometric authentication is not available on this device",
       "authFailed": "Biometric authentication failed",
@@ -151,7 +153,8 @@
     "confirm": "Confirm",
     "save": "Save",
     "delete": "Delete",
-    "edit": "Edit"
+    "edit": "Edit",
+    "continue": "continue"
   }
 }
 

@@ -256,9 +256,7 @@ export const ResetPasswordScreen = () => {
                         <View className="w-4 h-4 items-center justify-center">
                           <Text className="text-error-dark text-xs">✕</Text>
                         </View>
-                        <Text variant="caption" className="text-error-dark lowercase">
-                          passwords do not match
-                        </Text>
+                        
                       </>
                     )}
                   </View>

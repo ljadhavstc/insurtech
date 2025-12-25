@@ -43,7 +43,7 @@ export interface ValidationRule {
 const validationRules: ValidationRule[] = [
   {
     id: 'minLength',
-    label: 'at least 1 character',
+    label: 'at least 8 characters',
     validate: (pwd) => pwd.length >= 1,
   },
   {

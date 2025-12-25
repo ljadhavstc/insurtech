@@ -23,6 +23,7 @@ import { useScreenDimensions } from '@/utils/useScreenDimensions';
 import { lightTheme } from '@/styles/tokens';
 import { Icon } from '@/components/icons';
 import { saveRegistrationStep } from '@/services/registrationStepService';
+import { logCustomerStepRequest } from '@/services/requests';
 
 type AuthStackParamList = {
   OTPVerification: { mobileNumber?: string; email?: string; purpose?: 'password-reset' | 'verification' | 'registration' };
@@ -142,6 +143,16 @@ export const OTPVerificationScreen = () => {
           resetToken: response.data.resetToken || response.data.verificationToken,
           response: response.data,
         });
+        
+        // Log customer step: OTP verified for registration
+        if (route.params?.mobileNumber) {
+          try {
+            await logCustomerStepRequest(route.params.mobileNumber, 'OTP verified for registration');
+          } catch (logError) {
+            // Don't fail if logging fails
+            console.warn('Failed to log customer step:', logError);
+          }
+        }
       }
 
       // Navigate after a short delay to show success state

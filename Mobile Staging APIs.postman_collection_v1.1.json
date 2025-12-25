@@ -1,0 +1,308 @@
+{
+	"info": {
+		"_postman_id": "4ed3a6fa-dedd-4c56-81f3-e1f8dfa3a84c",
+		"name": "Mobile Staging APIs",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "40698187"
+	},
+	"item": [
+		{
+			"name": "https://insurancebackenduat.stc.com.bh/customer/login",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "x-stc-auth-signature",
+						"value": "",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"username\": \"8652857833\",\r\n    \"password\": \"Sanket@stc\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://insurancebackenduat.stc.com.bh/customer/login",
+					"protocol": "https",
+					"host": [
+						"insurancebackenduat",
+						"stc",
+						"com",
+						"bh"
+					],
+					"path": [
+						"customer",
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "https://insurancebackenduat.stc.com.bh/customer/account-register",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"username\": \"8652857833\",\r\n    \"password\": \"Sanket@stc\",\r\n    \"mobile\": \"8652857833\",\r\n    \"email\": \"san@gmail.com\",\r\n    \"cpr\": \"22347889\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://insurancebackenduat.stc.com.bh/customer/account-register",
+					"protocol": "https",
+					"host": [
+						"insurancebackenduat",
+						"stc",
+						"com",
+						"bh"
+					],
+					"path": [
+						"customer",
+						"account-register"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "https://insurancebackenduat.stc.com.bh/customer/generate-otp",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"mobile_number\": \"39298114\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://insurancebackenduat.stc.com.bh/customer/generate-otp",
+					"protocol": "https",
+					"host": [
+						"insurancebackenduat",
+						"stc",
+						"com",
+						"bh"
+					],
+					"path": [
+						"customer",
+						"generate-otp"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "https://insurancebackenduat.stc.com.bh/customer/verify-otp",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"mobile_number\": \"39298114\",\r\n    \"pin\" : \"3310\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://insurancebackenduat.stc.com.bh/customer/verify-otp",
+					"protocol": "https",
+					"host": [
+						"insurancebackenduat",
+						"stc",
+						"com",
+						"bh"
+					],
+					"path": [
+						"customer",
+						"verify-otp"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "https://insurancebackenduat.stc.com.bh/customer/resend-otp",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"mobile_number\": \"8652857833\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://insurancebackenduat.stc.com.bh/customer/resend-otp",
+					"protocol": "https",
+					"host": [
+						"insurancebackenduat",
+						"stc",
+						"com",
+						"bh"
+					],
+					"path": [
+						"customer",
+						"resend-otp"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "https://insurancebackenduat.stc.com.bh/customer/forgot-password",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"username\": \"8652857833\",\r\n    \"password\": \"Sanket@stc#bahrain\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://insurancebackenduat.stc.com.bh/customer/forgot-password",
+					"protocol": "https",
+					"host": [
+						"insurancebackenduat",
+						"stc",
+						"com",
+						"bh"
+					],
+					"path": [
+						"customer",
+						"forgot-password"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "https://insurancebackenduat.stc.com.bh/customer/identity-verify",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"mobile_number\": \"8652857833\",\r\n    \"cpr\": \"22347889\",\r\n    \"first_name\": \"Sanket\",\r\n    \"last_name\": \"Sawardekar\",\r\n    \"gender\": \"Male\",\r\n    \"date_of_birth\": \"1992-04-23\",\r\n    \"cpr_expiry_date\": \"2025-12-23\",\r\n    \"nationality\": \"Bahrain\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://insurancebackenduat.stc.com.bh/customer/identity-verify",
+					"protocol": "https",
+					"host": [
+						"insurancebackenduat",
+						"stc",
+						"com",
+						"bh"
+					],
+					"path": [
+						"customer",
+						"identity-verify"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "https://insurancebackenduat.stc.com.bh/customer/get-customer-details",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"mobile_number\": \"8652857833\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://insurancebackenduat.stc.com.bh/customer/get-customer-details",
+					"protocol": "https",
+					"host": [
+						"insurancebackenduat",
+						"stc",
+						"com",
+						"bh"
+					],
+					"path": [
+						"customer",
+						"get-customer-details"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "https://insurancebackenduat.stc.com.bh/customer/log-customer-step",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"mobile_number\": \"8652557833\",\r\n    \"step\": \"User log out\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://insurancebackenduat.stc.com.bh/customer/log-customer-step",
+					"protocol": "https",
+					"host": [
+						"insurancebackenduat",
+						"stc",
+						"com",
+						"bh"
+					],
+					"path": [
+						"customer",
+						"log-customer-step"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

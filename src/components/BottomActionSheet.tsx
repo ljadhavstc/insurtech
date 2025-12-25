@@ -12,13 +12,15 @@ import {
   TouchableOpacity,
   TouchableWithoutFeedback,
   Animated,
-  StyleSheet,
-  Platform,
   Dimensions,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text } from './primitives/Text';
 import { Button } from './primitives/Button';
+import { ToggleSwitch } from './primitives/ToggleSwitch';
+import { Icon } from './icons';
 import { lightTheme } from '@/styles/tokens';
+import { ms } from '@/utils/scale';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -72,6 +74,26 @@ export interface BottomActionSheetProps {
    * Show close button (default: true)
    */
   showCloseButton?: boolean;
+  
+  /**
+   * Biometric login mode - shows toggle switch for enabling biometric login
+   */
+  biometricMode?: boolean;
+  
+  /**
+   * Whether biometric login is enabled (for biometric mode)
+   */
+  biometricEnabled?: boolean;
+  
+  /**
+   * Callback when biometric toggle changes (for biometric mode)
+   */
+  onBiometricToggle?: (enabled: boolean) => void;
+  
+  /**
+   * Label text for biometric option (for biometric mode)
+   */
+  biometricLabel?: string;
 }
 
 export const BottomActionSheet: React.FC<BottomActionSheetProps> = ({
@@ -85,7 +107,12 @@ export const BottomActionSheet: React.FC<BottomActionSheetProps> = ({
   onSecondaryAction,
   children,
   showCloseButton = true,
+  biometricMode = false,
+  biometricEnabled = false,
+  onBiometricToggle,
+  biometricLabel = 'enable biometric login',
 }) => {
+  const insets = useSafeAreaInsets();
   const slideAnim = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
   const backdropOpacity = useRef(new Animated.Value(0)).current;
 
@@ -143,156 +170,171 @@ export const BottomActionSheet: React.FC<BottomActionSheetProps> = ({
       onRequestClose={onClose}
     >
       <TouchableWithoutFeedback onPress={onClose}>
-        <View style={styles.backdrop}>
+        <View className="flex-1 bg-transparent">
           <Animated.View
-            style={[
-              styles.backdropOverlay,
-              {
-                opacity: backdropOpacity,
-              },
-            ]}
+            className="absolute inset-0 bg-black/50"
+            style={{
+              opacity: backdropOpacity,
+            }}
           />
         </View>
       </TouchableWithoutFeedback>
 
-      <TouchableWithoutFeedback>
-        <Animated.View
-          style={[
-            styles.sheetContainer,
-            {
-              transform: [{ translateY: slideAnim }],
-            },
-          ]}
+      <Animated.View
+        className="absolute bottom-0 left-0 right-0 bg-transparent"
+        style={{
+          transform: [{ translateY: slideAnim }],
+          zIndex: 1000,
+        }}
+        pointerEvents="box-none"
+      >
+        <View
+          className="bg-theme-background rounded-t-[20px] pt-3 px-4"
+          style={{
+            paddingBottom: Math.max(insets.bottom, 16),
+            maxHeight: SCREEN_HEIGHT * 0.9,
+          }}
         >
-          <View style={styles.sheetContent}>
             {/* Handle bar */}
-            <View style={styles.handleBar} />
+            <View className="w-10 h-1 bg-theme-border rounded self-center mb-4" />
 
-            {/* Header */}
-            {(title || showCloseButton) && (
-              <View style={styles.header}>
-                {title && (
-                  <Text variant="h3" className="text-theme-text-primary flex-1">
-                    {title}
+            {biometricMode ? (
+              // Biometric login mode layout
+              <>
+                {/* Title - centered */}
+                <View style={{ marginBottom: ms(24), marginTop: ms(8) }}>
+                  <Text variant="screenTitle" className="text-theme-text-primary text-left">
+                    {'login with face id'}
                   </Text>
-                )}
-                {showCloseButton && (
-                  <TouchableOpacity
-                    onPress={onClose}
-                    style={styles.closeButton}
-                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                </View>
+
+                {/* Biometric option row */}
+                <View
+                  className="flex-row items-center justify-center"
+                  style={{
+                    marginBottom: ms(24),
+                  }}
+                >
+                  {/* Face ID Icon */}
+                  <View
+                    className="items-center justify-center"
+                    style={{
+                      width: ms(24),
+                      height: ms(24),
+                    }}
                   >
-                    <Text variant="body" className="text-theme-text-secondary">
-                      ✕
-                    </Text>
-                  </TouchableOpacity>
-                )}
-              </View>
-            )}
-
-            {/* Description */}
-            {description && (
-              <View style={styles.descriptionContainer}>
-                <Text variant="bodySmall" className="text-theme-text-secondary">
-                  {description}
-                </Text>
-              </View>
-            )}
-
-            {/* Custom content */}
-            {children && <View style={styles.childrenContainer}>{children}</View>}
-
-            {/* Actions */}
-            {(primaryActionText || secondaryActionText) && (
-              <View style={styles.actionsContainer}>
-                {secondaryActionText && (
-                  <Button
-                    variant="ghost"
-                    size="medium"
-                    onPress={handleSecondaryAction}
-                    fullWidth
-                    style={styles.secondaryButton}
+                    <Icon 
+                      name="face-id" 
+                      size={ms(48)} 
+                      color={lightTheme.textPrimary} 
+                    />
+                  </View>
+                  
+                  {/* Label */}
+                  <Text 
+                    variant="body" 
+                    className="text-theme-text-primary"
+                    style={{
+                      marginLeft: ms(25),
+                      marginRight: ms(8),
+                    }}
                   >
-                    {secondaryActionText}
-                  </Button>
-                )}
+                    {biometricLabel}
+                  </Text>
+                  
+                  {/* Toggle Switch */}
+                  <ToggleSwitch
+                    value={biometricEnabled}
+                    onValueChange={onBiometricToggle || (() => {})}
+                    testID="biometric-toggle"
+                  />
+                </View>
+
+                {/* Continue Button */}
                 {primaryActionText && (
-                  <Button
-                    variant="solid"
-                    size="medium"
-                    onPress={handlePrimaryAction}
-                    fullWidth
-                  >
-                    {primaryActionText}
-                  </Button>
+                  <View style={{ marginTop: ms(8) }}>
+                    <Button  
+                      variant="solid"
+                      size="medium"
+                      onPress={handlePrimaryAction}
+                      fullWidth
+                    >
+                      <Text variant="button" className="text-theme-text-primary text-white">
+                        {primaryActionText}
+                      </Text>
+                    </Button>
+                  </View>
                 )}
-              </View>
+              </>
+            ) : (
+              // Standard mode layout
+              <>
+                {/* Header */}
+                {(title || showCloseButton) && (
+                  <View className="flex-row items-center mb-3">
+                    {title && (
+                      <Text variant="h3" className="text-theme-text-primary flex-1">
+                        {title}
+                      </Text>
+                    )}
+                    {showCloseButton && (
+                      <TouchableOpacity
+                        onPress={onClose}
+                        className="w-8 h-8 items-center justify-center"
+                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                      >
+                        <Text variant="body" className="text-theme-text-secondary">
+                          ✕
+                        </Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                )}
+
+                {/* Description */}
+                {description && (
+                  <View className="mb-4">
+                    <Text variant="bodySmall" className="text-theme-text-secondary">
+                      {description}
+                    </Text>
+                  </View>
+                )}
+
+                {/* Custom content */}
+                {children && <View className="mb-4">{children}</View>}
+
+                {/* Actions */}
+                {(primaryActionText || secondaryActionText) && (
+                  <View className="gap-3 mt-2">
+                    {secondaryActionText && (
+                      <Button
+                        variant="ghost"
+                        size="medium"
+                        onPress={handleSecondaryAction}
+                        fullWidth
+                      >
+                        {secondaryActionText}
+                      </Button>
+                    )}
+                    {primaryActionText && (
+                      <Button
+                        variant="solid"
+                        size="medium"
+                        onPress={handlePrimaryAction}
+                        fullWidth
+                      >
+                        {primaryActionText}
+                      </Button>
+                    )}
+                  </View>
+                )}
+              </>
             )}
           </View>
         </Animated.View>
-      </TouchableWithoutFeedback>
     </Modal>
   );
 };
-
-const styles = StyleSheet.create({
-  backdrop: {
-    flex: 1,
-    backgroundColor: 'transparent',
-  },
-  backdropOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  },
-  sheetContainer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: 'transparent',
-  },
-  sheetContent: {
-    backgroundColor: lightTheme.background,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    paddingTop: 12,
-    paddingBottom: Platform.OS === 'ios' ? 34 : 16, // Safe area for iOS
-    paddingHorizontal: 16,
-    maxHeight: SCREEN_HEIGHT * 0.9,
-  },
-  handleBar: {
-    width: 40,
-    height: 4,
-    backgroundColor: lightTheme.border,
-    borderRadius: 2,
-    alignSelf: 'center',
-    marginBottom: 16,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  closeButton: {
-    width: 32,
-    height: 32,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  descriptionContainer: {
-    marginBottom: 16,
-  },
-  childrenContainer: {
-    marginBottom: 16,
-  },
-  actionsContainer: {
-    gap: 12,
-    marginTop: 8,
-  },
-  secondaryButton: {
-    marginBottom: 0,
-  },
-});
 
 export default BottomActionSheet;
 

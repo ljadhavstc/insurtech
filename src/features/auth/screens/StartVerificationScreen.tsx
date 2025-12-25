@@ -21,6 +21,8 @@ import { useScreenDimensions } from '@/utils/useScreenDimensions';
 import { lightTheme, brandColors } from '@/styles/tokens';
 import { Icon } from '@/components/icons';
 import { saveRegistrationStep } from '@/services/registrationStepService';
+import { logCustomerStepRequest } from '@/services/requests';
+import { authStore } from '@/stores/authStore';
 
 type AuthStackParamList = {
   StartVerification: undefined;
@@ -186,6 +188,18 @@ export const StartVerificationScreen: React.FC = () => {
         started: true,
         timestamp: Date.now(),
       });
+
+      // Log customer step: CPR verification started
+      const user = authStore.getState().user;
+      const mobileNumber = user?.mobile_number || user?.username || user?.id;
+      if (mobileNumber) {
+        try {
+          await logCustomerStepRequest(mobileNumber, 'CPR verification started');
+        } catch (logError) {
+          // Don't fail if logging fails
+          console.warn('Failed to log customer step:', logError);
+        }
+      }
 
       // Navigate to verification progress screen
       navigation.navigate('VerificationProgress');

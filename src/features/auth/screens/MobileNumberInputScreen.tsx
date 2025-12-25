@@ -25,6 +25,8 @@ import { vs } from '@/utils/scale';
 import { useScreenDimensions } from '@/utils/useScreenDimensions';
 import { lightTheme } from '@/styles/tokens';
 import { Icon } from '@/components/icons';
+import { saveRegistrationStep } from '@/services/registrationStepService';
+import { logCustomerStepRequest } from '@/services/requests';
 
 export type MobileNumberInputPurpose = 'password-reset' | 'registration' | 'verification';
 
@@ -226,6 +228,14 @@ export const MobileNumberInputScreen: React.FC<MobileNumberInputScreenProps> = (
           mobileNumber: data.mobileNumber,
           response: response.data,
         });
+        
+        // Log customer step: Mobile number entered for registration
+        try {
+          await logCustomerStepRequest(data.mobileNumber, 'Mobile number entered for registration');
+        } catch (logError) {
+          // Don't fail if logging fails
+          console.warn('Failed to log customer step:', logError);
+        }
       }
       
       // If custom onSuccess callback provided, use it

@@ -10,8 +10,18 @@
 import axios, { AxiosInstance, AxiosError, InternalAxiosRequestConfig } from 'axios';
 import { authStore } from '@/stores/authStore';
 
+// Import Reactotron for network logging in development
+let Reactotron: any = null;
+if (__DEV__) {
+  try {
+    Reactotron = require('@/config/ReactotronConfig').default;
+  } catch (e) {
+    // Reactotron not available
+  }
+}
+
 // Base URL - in production, this would come from env
-const BASE_URL = 'https://api.insurtech.app';
+const BASE_URL = 'https://insurancebackenduat.stc.com.bh';
 
 // Create axios instance
 const api: AxiosInstance = axios.create({
@@ -29,9 +39,29 @@ api.interceptors.request.use(
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    
+    // Log request to Reactotron in development
+    if (__DEV__ && Reactotron) {
+      Reactotron.display({
+        name: 'API Request',
+        value: {
+          method: config.method?.toUpperCase(),
+          url: config.url,
+          baseURL: config.baseURL,
+          headers: config.headers,
+          data: config.data,
+        },
+        preview: `${config.method?.toUpperCase()} ${config.url}`,
+      });
+    }
+    
     return config;
   },
   (error) => {
+    // Log error to Reactotron in development
+    if (__DEV__ && Reactotron) {
+      Reactotron.error('API Request Error', error);
+    }
     return Promise.reject(error);
   }
 );
@@ -55,8 +85,37 @@ const processQueue = (error: AxiosError | null, token: string | null = null) => 
 };
 
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // Log successful response to Reactotron in development
+    if (__DEV__ && Reactotron) {
+      Reactotron.display({
+        name: 'API Response',
+        value: {
+          status: response.status,
+          statusText: response.statusText,
+          url: response.config.url,
+          data: response.data,
+        },
+        preview: `${response.status} ${response.config.url}`,
+      });
+    }
+    return response;
+  },
   async (error: AxiosError) => {
+    // Log error response to Reactotron in development
+    if (__DEV__ && Reactotron) {
+      Reactotron.display({
+        name: 'API Error',
+        value: {
+          status: error.response?.status,
+          statusText: error.response?.statusText,
+          url: error.config?.url,
+          message: error.message,
+          data: error.response?.data,
+        },
+        preview: `Error ${error.response?.status || 'N/A'} ${error.config?.url || 'N/A'}`,
+      });
+    }
     const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
 
     // Handle 401 Unauthorized
