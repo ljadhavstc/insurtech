@@ -521,3 +521,123 @@ export const registerRequest = async (
   return response.data;
 };
 
+/**
+ * Initiate JUMIO Verification API
+ * POST /passport/verify
+ * Returns JUMIO SDK token and configuration
+ */
+export interface InitiateJumioVerificationRequest {
+  msisdn?: string; // Optional: mobile number
+}
+
+export interface InitiateJumioVerificationResponse {
+  success?: boolean;
+  error_code?: number;
+  message?: string;
+  data?: {
+    token?: string; // JUMIO SDK token
+    transactionId?: string;
+    accountId?: string;
+    workflowExecutionId?: string;
+    [key: string]: any;
+  };
+  // Legacy fields (for backward compatibility)
+  token?: string;
+  api_token?: string;
+  api_secret?: string;
+  datacenter?: string;
+  transaction_id?: string;
+  account_id?: string;
+  workflow_id?: string;
+  [key: string]: any;
+}
+
+export const initiateJumioVerification = async (
+  mobileNumber?: string
+): Promise<InitiateJumioVerificationResponse> => {
+  const requestData: InitiateJumioVerificationRequest = {};
+  
+  if (mobileNumber) {
+    const mobileValidation = validateMobileNumber(mobileNumber);
+    if (mobileValidation.isValid && mobileValidation.sanitized) {
+      requestData.msisdn = mobileValidation.sanitized;
+    }
+  }
+
+  console.log('📤 Calling backend /passport/verify:', requestData);
+
+  const response = await makeRequest<InitiateJumioVerificationResponse>(
+    'POST',
+    '/passport/verify',
+    requestData
+  );
+
+  console.log('📥 Backend /passport/verify response:', {
+    status: response.status,
+    data: response.data,
+  });
+
+  return response.data;
+};
+
+/**
+ * Check JUMIO Verification Status API
+ * POST /passport/verification-status
+ */
+export interface CheckJumioVerificationStatusRequest {
+  transaction_id: string;
+  msisdn: string;
+  account_id: string;
+  workflow_id: string;
+}
+
+export interface CheckJumioVerificationStatusResponse {
+  success?: boolean;
+  message?: string;
+  status?: string; // e.g., "APPROVED_VERIFIED", "DENIED_FRAUD", etc.
+  verification_status?: string;
+  cpr?: string; // Extracted CPR from document
+  first_name?: string;
+  last_name?: string;
+  date_of_birth?: string;
+  [key: string]: any;
+}
+
+export const checkJumioVerificationStatus = async (
+  data: CheckJumioVerificationStatusRequest
+): Promise<CheckJumioVerificationStatusResponse> => {
+  // Validate mobile number
+  const mobileValidation = validateMobileNumber(data.msisdn);
+  if (!mobileValidation.isValid || !mobileValidation.sanitized) {
+    throw new Error(mobileValidation.error || 'Invalid mobile number');
+  }
+
+  // Validate transaction_id
+  if (!data.transaction_id || typeof data.transaction_id !== 'string') {
+    throw new Error('Transaction ID is required');
+  }
+
+  // Validate account_id
+  if (!data.account_id || typeof data.account_id !== 'string') {
+    throw new Error('Account ID is required');
+  }
+
+  // Validate workflow_id
+  if (!data.workflow_id || typeof data.workflow_id !== 'string') {
+    throw new Error('Workflow ID is required');
+  }
+
+  const response = await makeRequest<CheckJumioVerificationStatusResponse>(
+    'POST',
+    '/passport/verification-status',
+    {
+      transaction_id: data.transaction_id,
+      msisdn: mobileValidation.sanitized,
+      account_id: data.account_id,
+      workflow_id: data.workflow_id,
+    }
+  );
+
+  return response.data;
+};
+

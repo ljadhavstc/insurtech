@@ -1,0 +1,78 @@
+{
+	"info": {
+		"_postman_id": "18e186cd-4c08-4de8-8f1a-f7a9d5c5f5cc",
+		"name": "Backend Jumio Staging APIs",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "40698187"
+	},
+	"item": [
+		{
+			"name": "https://insurancebackenduat.stc.com.bh/passport/verify",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://insurancebackenduat.stc.com.bh/passport/verify",
+					"protocol": "https",
+					"host": [
+						"insurancebackenduat",
+						"stc",
+						"com",
+						"bh"
+					],
+					"path": [
+						"passport",
+						"verify"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "https://insurancebackenduat.stc.com.bh/passport/verification-status",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"transaction_id\": \"DLAPD7A5081432E893BDF509AF38EC917A75\",\r\n    \"msisdn\": \"8850056343\",\r\n    \"account_id\": \"748668b9-3424-497c-9fe2-bf0562799e84\",\r\n    \"workflow_id\": \"560b7b15-6690-4152-af61-55df68dfbd8e\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://insurancebackenduat.stc.com.bh/passport/verification-status",
+					"protocol": "https",
+					"host": [
+						"insurancebackenduat",
+						"stc",
+						"com",
+						"bh"
+					],
+					"path": [
+						"passport",
+						"verification-status"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

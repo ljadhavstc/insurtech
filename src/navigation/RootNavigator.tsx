@@ -25,6 +25,7 @@ import { PasswordSetupScreen } from '@/features/auth/screens/PasswordSetupScreen
 import { EmailInputScreen } from '@/features/auth/screens/EmailInputScreen';
 import { StartVerificationScreen } from '@/features/auth/screens/StartVerificationScreen';
 import { VerificationProgressScreen } from '@/features/auth/screens/VerificationProgressScreen';
+import { JumioVerificationScreen } from '@/features/auth/screens/JumioVerificationScreen';
 import { useToast } from '@/components/Toast';
 import { Button } from '@/components/primitives/Button';
 import { 
@@ -247,6 +248,7 @@ const AuthStack = () => {
       <Stack.Screen name="PasswordSetup" component={PasswordSetupScreen} />
       <Stack.Screen name="EmailInput" component={EmailInputScreen} />
       <Stack.Screen name="StartVerification" component={StartVerificationScreen} />
+      <Stack.Screen name="JumioVerification" component={JumioVerificationScreen} />
       <Stack.Screen name="VerificationProgress" component={VerificationProgressScreen} />
       <Stack.Screen name="Success" component={SuccessScreen} />
     </Stack.Navigator>
@@ -278,6 +280,7 @@ const RootStack = () => {
       initialRouteName="Splash"
     >
       <Stack.Screen name="Splash" component={SplashScreen} />
+      <Stack.Screen name="JumioVerification" component={JumioVerificationScreen} />
       <Stack.Screen name="Onboarding" component={OnboardingScreen} />
       <Stack.Screen name="StartVerification" component={StartVerificationScreen} />
       <Stack.Screen name="VerificationProgress" component={VerificationProgressScreen} />

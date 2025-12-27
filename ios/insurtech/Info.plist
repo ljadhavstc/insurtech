@@ -32,6 +32,12 @@
 		<false/>
 		<key>NSAllowsLocalNetworking</key>
 		<true/>
+		<key>NSCameraUsageDescription</key>
+		<string>We need access to your camera to scan your ID document for identity verification</string>
+		<key>NSPhotoLibraryUsageDescription</key>
+		<string>We need access to your photo library to select ID documents for verification</string>
+		<key>NSPhotoLibraryAddUsageDescription</key>
+		<string>We need access to save scanned documents to your photo library</string>
 	</dict>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string/>

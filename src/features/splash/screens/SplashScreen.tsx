@@ -36,10 +36,10 @@ export const SplashScreen = () => {
           routes: [{ name: 'App' }],
         });
       } else {
-        // Navigate to Onboarding screen after splash
+        // Navigate to JUMIO Verification screen after splash
         navigation.reset({
           index: 0,
-          routes: [{ name: 'Onboarding' }],
+          routes: [{ name: 'JumioVerification' }],
         });
       }
     }, 2000);

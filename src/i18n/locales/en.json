@@ -118,7 +118,19 @@
       "stepFinalTitle": "final checks",
       "homeButton": "home",
       "allStepsComplete": "all verification steps completed!",
-      "completeMessage": "verification completed successfully"
+      "completeMessage": "verification completed successfully",
+      "cancelled": "Verification cancelled",
+      "permissionError": "Camera and storage permissions are required for document scanning",
+      "cameraPermissionRequired": "Camera permission is required",
+      "storagePermissionRequired": "Storage permission is required",
+      "initializing": "Initializing verification...",
+      "ready": "Ready to scan",
+      "scanning": "Scanning document...",
+      "processing": "Processing verification...",
+      "error": "Verification failed",
+      "initializingSubtitle": "Preparing document scanner...",
+      "scanningSubtitle": "Please follow the instructions on screen",
+      "processingSubtitle": "Verifying your document..."
     },
     "biometric": {
       "enableTitle": "Enable {{type}} Login",
